@@ -8,14 +8,14 @@ type Noise struct {
 	source [512]float64
 }
 
-func New(seed int64) Noise {
+func New(seed int64) *Noise {
 	source := rand.NewSource(seed)
 	random := rand.New(source)
 	result := Noise{source: [512]float64{}}
 	for i, _ := range result.source {
 		result.source[i] = random.Float64()
 	}
-	return result
+	return &result
 }
 
 func (n *Noise) NumberOfTracks(hectometer int) int {

@@ -1,0 +1,5 @@
+{{- /*gotype: github.com/fafeitsch/go-infinite-rail-generator/image.svgTile*/ -}}
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="{{.Size}}" height="{{.Size}}">
+    {{range $key,$val := .Tracks}}
+    <line x1="0" y1="{{$val}}" x2="{{$.Size}}" y2="{{$val}}" stroke="black" stroke-width="px"/>{{end}}
+</svg>
