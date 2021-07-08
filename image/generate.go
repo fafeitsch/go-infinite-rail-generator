@@ -17,7 +17,7 @@ type svgTile struct {
 	Tracks []int
 }
 
-func Render(track domain.Tile, size int, writer io.Writer) error {
+func Render(writer io.Writer, track domain.Tile, size int) error {
 	trackSize := size / track.Tracks
 	pixelTracks := make([]int, 0, track.Tracks)
 	for i := 0; i < track.Tracks; i++ {

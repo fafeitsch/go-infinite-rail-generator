@@ -1,18 +1,14 @@
 package main
 
 import (
-	"github.com/fafeitsch/go-infinite-rail-generator/domain"
-	"github.com/fafeitsch/go-infinite-rail-generator/image"
-	"github.com/fafeitsch/go-infinite-rail-generator/noise"
+	"github.com/fafeitsch/go-infinite-rail-generator/web"
 	"log"
-	"os"
+	"net/http"
 )
 
 func main() {
-	tracks := noise.New(42).NumberOfTracks(66)
-	tile := domain.Tile{Tracks: tracks}
-	err := image.Render(tile, 500, os.Stdout)
+	err := http.ListenAndServe("0.0.0.0:9551", web.ApiHandler("my seed is good"))
 	if err != nil {
-		log.Fatalf("could not render image: %v", err)
+		log.Fatalf("could not start server: %v", err)
 	}
 }

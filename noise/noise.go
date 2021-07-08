@@ -1,6 +1,7 @@
 package noise
 
 import (
+	"hash/fnv"
 	"math/rand"
 )
 
@@ -8,8 +9,11 @@ type Noise struct {
 	source [512]float64
 }
 
-func New(seed int64) *Noise {
-	source := rand.NewSource(seed)
+func New(seed string) *Noise {
+	hash := fnv.New64a()
+	_, _ = hash.Write([]byte(seed))
+	hashSum := hash.Sum64()
+	source := rand.NewSource(int64(hashSum))
 	random := rand.New(source)
 	result := Noise{source: [512]float64{}}
 	for i, _ := range result.source {
