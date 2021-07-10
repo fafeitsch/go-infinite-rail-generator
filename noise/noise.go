@@ -40,5 +40,8 @@ func (n *Noise) NumberOfTracks(hectometer int) int {
 	if result < 0.6 {
 		return 2
 	}
+	if result < 0.7 {
+		return 3
+	}
 	return int(result*10 - 3)
 }
