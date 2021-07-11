@@ -15,7 +15,6 @@ import {FormControl} from '@angular/forms';
   templateUrl: './track-tile-viewer.component.html',
   styleUrls: ['./track-tile-viewer.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'overflow-hidden' },
   providers: [TrackTileViewerStore]
 })
 export class TrackTileViewerComponent {
@@ -27,7 +26,7 @@ export class TrackTileViewerComponent {
   }
 
   layers$  = this.store.seed$.pipe(map(seed => [
-     tileLayer(`http://127.0.0.1:9551/tiles?hectometer={x}&vertical={y}&seed=${seed}`, {
+     tileLayer(`http://127.0.0.1:9551/tiles?hectometer={x}&vertical={y}&seed=${seed}&offset=131068`, {
         maxZoom: 18,
         minZoom: 18,
         attribution: 'go-infinite-rail-generator',

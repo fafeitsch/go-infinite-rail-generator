@@ -7,6 +7,8 @@
   [leafletLayers]="(layers$ |async)!"
 ></div>
 
-<mat-form-field>
-  <input matInput placeholder="Seed" [value]="defaultSeed$ | async" [formControl]="seedControl"/>
-</mat-form-field>
+<div class="d-flex justify-content-flex-end w-100">
+  <mat-form-field class="mr-3 ml-3 mt-3">
+    <input matInput placeholder="Seed" [value]="defaultSeed$ | async" [formControl]="seedControl"/>
+  </mat-form-field>
+</div>
