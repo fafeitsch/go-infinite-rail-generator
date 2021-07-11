@@ -7,6 +7,7 @@ import (
 
 type Noise struct {
 	source [512]float64
+	Seed   string
 }
 
 func New(seed string) *Noise {
@@ -15,7 +16,7 @@ func New(seed string) *Noise {
 	hashSum := hash.Sum64()
 	source := rand.NewSource(int64(hashSum))
 	random := rand.New(source)
-	result := Noise{source: [512]float64{}}
+	result := Noise{source: [512]float64{}, Seed: seed}
 	for i, _ := range result.source {
 		result.source[i] = random.Float64()
 	}

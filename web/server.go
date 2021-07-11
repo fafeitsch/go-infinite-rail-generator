@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func ApiHandler(seed string) http.HandlerFunc {
+func ApiHandler(defaultNoise *noise.Noise) http.HandlerFunc {
 	return func(writer http.ResponseWriter, r *http.Request) {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		var head string
@@ -20,10 +20,10 @@ func ApiHandler(seed string) http.HandlerFunc {
 		head, r.URL.Path = shiftPath(r.URL.Path)
 		switch head {
 		case "tiles":
-			serveTile(seed, writer, r)
+			serveTile(defaultNoise, writer, r)
 			break
 		case "config":
-			serveConfig(seed, writer, r)
+			serveConfig(defaultNoise, writer, r)
 			break
 		default:
 			r.URL.Path = originalPath
@@ -41,21 +41,32 @@ func shiftPath(p string) (head, tail string) {
 	return p[1:i], p[i:]
 }
 
-func serveTile(defaultSeed string, writer http.ResponseWriter, r *http.Request) {
+func serveTile(defaultNoise *noise.Noise, writer http.ResponseWriter, r *http.Request) {
 	y := r.URL.Query().Get("vertical")
 	if y != "131072" {
 		return
 	}
 	seedString := r.URL.Query().Get("seed")
-	if seedString == "" {
-		seedString = defaultSeed
+	offset := 0
+	if r.URL.Query().Get("offset") != "" {
+		var err error
+		offset, err = strconv.Atoi(r.URL.Query().Get("offset"))
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("The offset %s is not a valid number.", r.URL.Query().Get("offset")), http.StatusBadRequest)
+		}
 	}
 	hectometer, err := strconv.Atoi(r.URL.Query().Get("hectometer"))
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("The hectometer query parameter \"%s\" is not a valid number.", r.URL.Query().Get("hectometer")), http.StatusBadRequest)
 		return
 	}
-	numberOfTracks := noise.New(seedString).NumberOfTracks(hectometer)
+	var aNoise *noise.Noise
+	if seedString == "" || seedString == defaultNoise.Seed {
+		aNoise = defaultNoise
+	} else {
+		aNoise = noise.New(seedString)
+	}
+	numberOfTracks := aNoise.NumberOfTracks(hectometer - offset)
 	writer.Header().Set("Content-Type", "image/svg+xml")
 	_ = image.Render(writer, domain.Tile{Tracks: numberOfTracks}, 200)
 }
@@ -64,7 +75,7 @@ type configDto struct {
 	DefaultSeed string `json:"defaultSeed"`
 }
 
-func serveConfig(defaultSeed string, writer http.ResponseWriter, r *http.Request) {
-	config := configDto{DefaultSeed: defaultSeed}
+func serveConfig(defaultNoise *noise.Noise, writer http.ResponseWriter, r *http.Request) {
+	config := configDto{DefaultSeed: defaultNoise.Seed}
 	_ = json.NewEncoder(writer).Encode(config)
 }
