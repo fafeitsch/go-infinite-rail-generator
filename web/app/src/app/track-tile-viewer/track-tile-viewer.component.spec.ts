@@ -8,9 +8,8 @@ describe('TrackTileViewerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TrackTileViewerComponent ]
-    })
-    .compileComponents();
+      declarations: [TrackTileViewerComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {
