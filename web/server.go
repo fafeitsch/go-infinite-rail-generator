@@ -16,6 +16,7 @@ func ApiHandler(seed string) http.HandlerFunc {
 	return func(writer http.ResponseWriter, r *http.Request) {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		var head string
+		originalPath := r.URL.Path
 		head, r.URL.Path = shiftPath(r.URL.Path)
 		switch head {
 		case "tiles":
@@ -24,6 +25,9 @@ func ApiHandler(seed string) http.HandlerFunc {
 		case "config":
 			serveConfig(seed, writer, r)
 			break
+		default:
+			r.URL.Path = originalPath
+			http.FileServer(http.Dir("./web/app/dist/app")).ServeHTTP(writer, r)
 		}
 	}
 }

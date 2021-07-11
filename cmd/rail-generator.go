@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	err := http.ListenAndServe("0.0.0.0:9551", web.ApiHandler("my seed is good"))
+	err := http.ListenAndServe("0.0.0.0:9551", web.ApiHandler("go-infinite-rail-generator"))
 	if err != nil {
 		log.Fatalf("could not start server: %v", err)
 	}

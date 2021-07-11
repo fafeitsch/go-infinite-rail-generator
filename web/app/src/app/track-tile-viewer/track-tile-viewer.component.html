@@ -1,8 +1,12 @@
 <div
+  *ngIf="(layers$ | async)"
   style="height: 255px"
   leaflet
   [leafletOptions]="options"
   [leafletMaxBounds]="bounding"
+  [leafletLayers]="(layers$ |async)!"
 ></div>
 
-{{ defaultSeed$ | async }}
+<mat-form-field>
+  <input matInput placeholder="Seed" [value]="defaultSeed$ | async" [formControl]="seedControl"/>
+</mat-form-field>
