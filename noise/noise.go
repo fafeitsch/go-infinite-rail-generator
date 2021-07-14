@@ -23,7 +23,7 @@ func New(seed string) *Noise {
 	return &result
 }
 
-func (n *Noise) NumberOfTracks(hectometer int) int {
+func (n *Noise) Interpolate(hectometer int) float64 {
 	hectometer = hectometer % 10_000
 	if hectometer < 0 {
 		hectometer = 10_000 + hectometer
@@ -34,15 +34,5 @@ func (n *Noise) NumberOfTracks(hectometer int) int {
 	deltaX := x - float64(xMin)
 	smoothDeltaX := deltaX * deltaX * (3 - 2*deltaX)
 
-	result := n.source[xMin]*(1-smoothDeltaX) + n.source[xMax]*smoothDeltaX
-	if result < 0.2 {
-		return 1
-	}
-	if result < 0.6 {
-		return 2
-	}
-	if result < 0.7 {
-		return 3
-	}
-	return int(result*10 - 3)
+	return n.source[xMin]*(1-smoothDeltaX) + n.source[xMax]*smoothDeltaX
 }

@@ -66,7 +66,7 @@ func serveTile(defaultNoise *noise.Noise, writer http.ResponseWriter, r *http.Re
 	} else {
 		aNoise = noise.New(seedString)
 	}
-	numberOfTracks := aNoise.NumberOfTracks(hectometer - offset)
+	numberOfTracks := aNoise.Interpolate(hectometer - offset)
 	writer.Header().Set("Content-Type", "image/svg+xml")
 	_ = image.Render(writer, domain.Tile{Tracks: numberOfTracks}, 200)
 }
