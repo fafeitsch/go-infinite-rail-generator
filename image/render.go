@@ -2,6 +2,7 @@ package image
 
 import (
 	_ "embed"
+	"fmt"
 	"github.com/fafeitsch/go-infinite-rail-generator/domain"
 	"io"
 	"text/template"
@@ -13,8 +14,9 @@ var templateString string
 var svgTemplate = template.Must(template.New("svgTemplate").Parse(templateString))
 
 type svgTile struct {
-	Size   int
-	Tracks []svgTrack
+	Size        int
+	Tracks      []svgTrack
+	SwitchPaths []string
 }
 
 type svgTrack struct {
@@ -22,13 +24,34 @@ type svgTrack struct {
 	Length int
 }
 
-func Render(writer io.Writer, track domain.Tile, size int) error {
-	pixelTracks := make([]svgTrack, 0, len(track.Tracks))
-	offset := len(track.Tracks) / 2
+func Render(writer io.Writer, tile domain.Tile, size int) error {
+	pixelTracks := make([]svgTrack, 0, len(tile.Tracks))
+	offset := len(tile.Tracks) / 2
 	y := int(float64(size)/2 - float64(offset*size)*0.1)
-	for i := 0; i < len(track.Tracks); i++ {
-		pixelTracks = append(pixelTracks, svgTrack{Y: y, Length: size})
+	for _, _ = range tile.Tracks {
+		generated := svgTrack{Y: y, Length: size}
+		pixelTracks = append(pixelTracks, generated)
 		y = y + int(float64(size)*0.1)
 	}
-	return svgTemplate.Execute(writer, svgTile{Size: size, Tracks: pixelTracks})
+	switches := computeSwitches(tile.Tracks, pixelTracks, size)
+	return svgTemplate.Execute(writer, svgTile{Size: size, Tracks: pixelTracks, SwitchPaths: switches})
+}
+
+func computeSwitches(tracks []domain.Track, pxTracks []svgTrack, size int) []string {
+	switchWidth := int(0.5 * float64(size))
+	switchPaths := make([]string, 0, 0)
+	switchStart := size - switchWidth
+	switchCp := size - switchWidth/2
+	for i, track := range tracks {
+		y := pxTracks[i].Y
+		for _, sw := range track.Switches {
+			target := y + int(float64(sw.TrackSpan*size)*0.1)
+			if sw.Direction == domain.Merging {
+				pxTracks[i].Length = size - switchWidth
+			}
+			path := fmt.Sprintf("M%d,%d C%d,%d %d,%d, %d,%d", switchStart, y, switchCp, y, switchCp, target, size, target)
+			switchPaths = append(switchPaths, path)
+		}
+	}
+	return switchPaths
 }

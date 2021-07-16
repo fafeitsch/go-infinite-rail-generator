@@ -3,5 +3,8 @@
     <rect width="100%" height="100%" fill="white"/>
     {{range $key,$val := .Tracks}}
     <line x1="0" y1="{{$val.Y}}" x2="{{$val.Length}}" y2="{{$val.Y}}" stroke="black" stroke-width="2px"/>{{end}}
+
+    {{range $key,$val := .SwitchPaths}}
+    <path fill="transparent" stroke="black" stroke-width="2px" d="{{$val}}"/>{{end}}
     <text stroke="black" x="0" y="15">{{len $.Tracks}}</text>
 </svg>
