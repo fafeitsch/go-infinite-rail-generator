@@ -14,14 +14,21 @@ var svgTemplate = template.Must(template.New("svgTemplate").Parse(templateString
 
 type svgTile struct {
 	Size   int
-	Tracks []int
+	Tracks []svgTrack
+}
+
+type svgTrack struct {
+	Y      int
+	Length int
 }
 
 func Render(writer io.Writer, track domain.Tile, size int) error {
-	trackSize := size / track.Tracks
-	pixelTracks := make([]int, 0, track.Tracks)
-	for i := 0; i < track.Tracks; i++ {
-		pixelTracks = append(pixelTracks, trackSize*i+trackSize/2)
+	pixelTracks := make([]svgTrack, 0, len(track.Tracks))
+	offset := len(track.Tracks) / 2
+	y := int(float64(size)/2 - float64(offset*size)*0.1)
+	for i := 0; i < len(track.Tracks); i++ {
+		pixelTracks = append(pixelTracks, svgTrack{Y: y, Length: size})
+		y = y + int(float64(size)*0.1)
 	}
 	return svgTemplate.Execute(writer, svgTile{Size: size, Tracks: pixelTracks})
 }

@@ -3,7 +3,6 @@ package web
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/fafeitsch/go-infinite-rail-generator/domain"
 	"github.com/fafeitsch/go-infinite-rail-generator/image"
 	"github.com/fafeitsch/go-infinite-rail-generator/noise"
 	"net/http"
@@ -66,9 +65,9 @@ func serveTile(defaultNoise *noise.Noise, writer http.ResponseWriter, r *http.Re
 	} else {
 		aNoise = noise.New(seedString)
 	}
-	numberOfTracks := aNoise.Interpolate(hectometer - offset)
+	tile := aNoise.Generate(hectometer - offset)
 	writer.Header().Set("Content-Type", "image/svg+xml")
-	_ = image.Render(writer, domain.Tile{Tracks: numberOfTracks}, 200)
+	_ = image.Render(writer, tile, 200)
 }
 
 type configDto struct {

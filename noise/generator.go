@@ -12,19 +12,23 @@ type tileGenerator struct {
 	nextTileTracks int
 }
 
-func (n *Noise) Generate(hectometer int) {
+func (n *Noise) Generate(hectometer int) domain.Tile {
 	seed := n.Interpolate(hectometer)
 	source := rand.NewSource(int64(seed * 10e10))
 	random := rand.New(source)
 
 	neighborSeed := n.Interpolate(hectometer + 1)
-	tracks := computeTracks(seed)
 	generator := tileGenerator{
 		random:         *random,
-		tracks:         tracks,
+		tracks:         computeTracks(seed),
 		nextTileTracks: computeTracks(neighborSeed),
 	}
-	generator.mandatorySwitches()
+	switches := generator.mandatorySwitches()
+	tracks := make([]domain.Track, 0, generator.tracks)
+	for _, sw := range switches {
+		tracks = append(tracks, domain.Track{Switches: sw})
+	}
+	return domain.Tile{Tracks: tracks}
 }
 
 func computeTracks(seed float64) int {

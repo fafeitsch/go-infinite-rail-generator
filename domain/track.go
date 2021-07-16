@@ -8,7 +8,7 @@ type Tile struct {
 }
 
 type Track struct {
-	Switches []Switch
+	Switches []*Switch
 }
 
 type SwitchDirection int
