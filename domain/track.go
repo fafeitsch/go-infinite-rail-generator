@@ -8,17 +8,7 @@ type Tile struct {
 }
 
 type Track struct {
-	Switches []*Switch
-}
-
-type SwitchDirection int
-
-const (
-	Diverging SwitchDirection = iota
-	Merging
-)
-
-type Switch struct {
-	Direction SwitchDirection
-	TrackSpan int
+	Switches    []int
+	BumperLeft  bool
+	BumperRight bool
 }

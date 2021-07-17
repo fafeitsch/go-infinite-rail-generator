@@ -45,8 +45,10 @@ func computeSwitches(tracks []domain.Track, pxTracks []svgTrack, size int) []str
 	for i, track := range tracks {
 		y := pxTracks[i].Y
 		for _, sw := range track.Switches {
-			target := y + int(float64(sw.TrackSpan*size)*0.1)
-			if sw.Direction == domain.Merging {
+			target := y + int(float64(sw*size)*0.1)
+			merging := i < len(tracks)/2 && sw > 0 ||
+				i > len(tracks)/2 && sw < -0
+			if merging {
 				pxTracks[i].Length = size - switchWidth
 			}
 			path := fmt.Sprintf("M%d,%d C%d,%d %d,%d, %d,%d", switchStart, y, switchCp, y, switchCp, target, size, target)

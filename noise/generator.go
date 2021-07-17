@@ -44,7 +44,7 @@ func computeTracks(seed float64) int {
 	return int(seed*10 - 3)
 }
 
-func (t *tileGenerator) mandatorySwitches() [][]*domain.Switch {
+func (t *tileGenerator) mandatorySwitches() [][]int {
 	if t.tracks > t.nextTileTracks {
 		return mergingSwitches(t.tracks, t.nextTileTracks)
 	} else {
@@ -52,37 +52,37 @@ func (t *tileGenerator) mandatorySwitches() [][]*domain.Switch {
 	}
 }
 
-func mergingSwitches(left int, right int) [][]*domain.Switch {
-	result := make([][]*domain.Switch, left)
+func mergingSwitches(left int, right int) [][]int {
+	result := make([][]int, left)
 	for track := 0; track < left; track++ {
-		result[track] = make([]*domain.Switch, 0, 0)
+		result[track] = make([]int, 0, 0)
 	}
 	offsetLeft := left / 2
 	offsetRight := -right / 2
 	for track := 0; track < left; track++ {
 		position := track - offsetLeft
 		if position < offsetRight {
-			result[track] = append(result[track], &domain.Switch{Direction: domain.Merging, TrackSpan: int(math.Abs(float64(offsetRight - position)))})
+			result[track] = append(result[track], int(math.Abs(float64(offsetRight-position))))
 		} else if position > offsetRight+right-1 {
-			result[track] = append(result[track], &domain.Switch{Direction: domain.Merging, TrackSpan: -(position - (offsetRight + right - 1))})
+			result[track] = append(result[track], -(position - (offsetRight + right - 1)))
 		}
 	}
 	return result
 }
 
-func divergingSwitches(left int, right int) [][]*domain.Switch {
-	result := make([][]*domain.Switch, left)
+func divergingSwitches(left int, right int) [][]int {
+	result := make([][]int, left)
 	for track := 0; track < left; track++ {
-		result[track] = make([]*domain.Switch, 0, 0)
+		result[track] = make([]int, 0, 0)
 	}
 	offsetLeft := -left / 2
 	offsetRight := right / 2
 	for track := 0; track < right; track++ {
 		position := track - offsetRight
 		if position < offsetLeft {
-			result[0] = append(result[0], &domain.Switch{Direction: domain.Diverging, TrackSpan: -int(math.Abs(float64(offsetLeft) - float64(position)))})
+			result[0] = append(result[0], -int(math.Abs(float64(offsetLeft)-float64(position))))
 		} else if position > offsetLeft+left-1 {
-			result[left-1] = append(result[left-1], &domain.Switch{Direction: domain.Diverging, TrackSpan: position - (offsetLeft + left - 1)})
+			result[left-1] = append(result[left-1], position-(offsetLeft+left-1))
 		}
 	}
 	return result

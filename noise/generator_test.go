@@ -2,7 +2,6 @@ package noise
 
 import (
 	"fmt"
-	"github.com/fafeitsch/go-infinite-rail-generator/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -46,21 +45,8 @@ func compare(t *testing.T,
 		if !result {
 			continue
 		}
-		direction := domain.Diverging
-		if left > right {
-			direction = domain.Merging
-		}
 		for index, sw := range element {
-			assert.Equal(t, domain.Switch{Direction: direction, TrackSpan: want[track][index]}, *sw, "Switch %d of track %d is wrong", index, track)
+			assert.Equal(t, want[track][index], sw, "Switch %d of track %d is wrong", index, track)
 		}
 	}
-}
-
-func allSwitchesOfType(switches []*domain.Switch, direction domain.SwitchDirection) bool {
-	for _, element := range switches {
-		if element.Direction != direction {
-			return false
-		}
-	}
-	return true
 }
