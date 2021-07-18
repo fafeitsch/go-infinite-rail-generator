@@ -38,14 +38,16 @@ func compare(t *testing.T,
 	left int,
 	right int,
 	want [][]int) {
-	switches := (&tileGenerator{nextTileTracks: right, tracks: left}).mandatorySwitches()
+	tile := shallowTile{tracks: left, bumperLeft: make([]bool, left), bumperRight: make([]bool, left)}
+	rightTile := shallowTile{tracks: right, bumperLeft: make([]bool, right)}
+	switches := mandatorySwitches(tile, shallowTile{}, rightTile)
 	require.Equal(t, len(want), len(switches), "Number of tracks differs.")
 	for track, element := range switches {
-		result := assert.Equal(t, len(want[track]), len(element), "Number of switches of track %d is wrong", track)
+		result := assert.Equal(t, len(want[track]), len(element.Switches), "Number of switches of track %d is wrong", track)
 		if !result {
 			continue
 		}
-		for index, sw := range element {
+		for index, sw := range element.Switches {
 			assert.Equal(t, want[track][index], sw, "Switch %d of track %d is wrong", index, track)
 		}
 	}

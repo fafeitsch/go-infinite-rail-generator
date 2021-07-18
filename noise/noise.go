@@ -23,7 +23,7 @@ func New(seed string) *Noise {
 	return &result
 }
 
-func (n *Noise) Interpolate(hectometer int) float64 {
+func (n *Noise) interpolate(hectometer int) float64 {
 	hectometer = hectometer % 10_000
 	if hectometer < 0 {
 		hectometer = 10_000 + hectometer

@@ -6,84 +6,77 @@ import (
 	"math/rand"
 )
 
-type tileGenerator struct {
-	random         rand.Rand
-	tracks         int
-	nextTileTracks int
-}
-
 func (n *Noise) Generate(hectometer int) domain.Tile {
-	seed := n.Interpolate(hectometer)
-	source := rand.NewSource(int64(seed * 10e10))
-	random := rand.New(source)
+	tile := n.generateShallowTile(hectometer)
+	left := n.generateShallowTile(hectometer - 1)
+	right := n.generateShallowTile(hectometer + 1)
 
-	neighborSeed := n.Interpolate(hectometer + 1)
-	generator := tileGenerator{
-		random:         *random,
-		tracks:         computeTracks(seed),
-		nextTileTracks: computeTracks(neighborSeed),
-	}
-	switches := generator.mandatorySwitches()
-	tracks := make([]domain.Track, 0, generator.tracks)
-	for _, sw := range switches {
-		tracks = append(tracks, domain.Track{Switches: sw})
-	}
+	tracks := mandatorySwitches(tile, left, right)
+
 	return domain.Tile{Tracks: tracks}
 }
 
-func computeTracks(seed float64) int {
-	if seed < 0.2 {
-		return 1
-	}
-	if seed < 0.6 {
-		return 2
-	}
-	if seed < 0.7 {
-		return 3
-	}
-	return int(seed*10 - 3)
+type tileGenerator struct {
+	seed           float64
+	random         rand.Rand
+	leftGenerator  *tileGenerator
+	rightGenerator *tileGenerator
 }
 
-func (t *tileGenerator) mandatorySwitches() [][]int {
-	if t.tracks > t.nextTileTracks {
-		return mergingSwitches(t.tracks, t.nextTileTracks)
+func mandatorySwitches(tile shallowTile, left shallowTile, right shallowTile) []domain.Track {
+	result := make([]domain.Track, tile.tracks)
+	for track := 0; track < tile.tracks; track++ {
+		result[track] = domain.Track{Switches: make([]int, 0, 0)}
+	}
+	if tile.tracks > right.tracks {
+		mergingSwitches(tile, right.tracks, result)
 	} else {
-		return divergingSwitches(t.tracks, t.nextTileTracks)
+		divergingSwitches(tile.tracks, right, result)
 	}
-}
-
-func mergingSwitches(left int, right int) [][]int {
-	result := make([][]int, left)
-	for track := 0; track < left; track++ {
-		result[track] = make([]int, 0, 0)
-	}
-	offsetLeft := left / 2
-	offsetRight := -right / 2
-	for track := 0; track < left; track++ {
-		position := track - offsetLeft
-		if position < offsetRight {
-			result[track] = append(result[track], int(math.Abs(float64(offsetRight-position))))
-		} else if position > offsetRight+right-1 {
-			result[track] = append(result[track], -(position - (offsetRight + right - 1)))
+	for track := range result {
+		span := getSwitchSpan(track, tile.tracks, left.tracks)
+		if span != 0 && tile.bumperLeft[track] {
+			result[track].BumperLeft = true
 		}
 	}
 	return result
 }
 
-func divergingSwitches(left int, right int) [][]int {
-	result := make([][]int, left)
-	for track := 0; track < left; track++ {
-		result[track] = make([]int, 0, 0)
-	}
-	offsetLeft := -left / 2
-	offsetRight := right / 2
-	for track := 0; track < right; track++ {
-		position := track - offsetRight
-		if position < offsetLeft {
-			result[0] = append(result[0], -int(math.Abs(float64(offsetLeft)-float64(position))))
-		} else if position > offsetLeft+left-1 {
-			result[left-1] = append(result[left-1], position-(offsetLeft+left-1))
+func mergingSwitches(left shallowTile, right int, tracks []domain.Track) {
+	for index := range tracks {
+		span := getSwitchSpan(index, left.tracks, right)
+		if left.bumperRight[index] {
+			tracks[index].BumperRight = span != 0
+			continue
+		}
+		if span != 0 {
+			tracks[index].Switches = append(tracks[index].Switches, span)
 		}
 	}
-	return result
+}
+
+func divergingSwitches(left int, right shallowTile, tracks []domain.Track) {
+	for track := 0; track < right.tracks; track++ {
+		span := -getSwitchSpan(track, right.tracks, left)
+		if right.bumperLeft[track] {
+			continue
+		}
+		if span < 0 {
+			tracks[0].Switches = append(tracks[0].Switches, span)
+		} else if span > 0 {
+			tracks[len(tracks)-1].Switches = append(tracks[len(tracks)-1].Switches, span)
+		}
+	}
+}
+
+func getSwitchSpan(track int, tracks int, otherTracks int) int {
+	offset := -tracks / 2
+	lowerLimit := -otherTracks / 2
+	upperLimit := lowerLimit + otherTracks - 1
+	if (offset + track) < lowerLimit {
+		return int(math.Abs(math.Abs(float64(lowerLimit)) - math.Abs(float64(offset+track))))
+	} else if (offset + track) > upperLimit {
+		return -(offset + track - upperLimit)
+	}
+	return 0
 }

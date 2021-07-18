@@ -6,7 +6,6 @@ import (
 	"github.com/fafeitsch/go-infinite-rail-generator/image"
 	"github.com/fafeitsch/go-infinite-rail-generator/noise"
 	"net/http"
-	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -68,7 +67,6 @@ func serveTile(defaultNoise *noise.Noise, writer http.ResponseWriter, r *http.Re
 	}
 	tile := aNoise.Generate(hectometer - offset)
 	writer.Header().Set("Content-Type", "image/svg+xml")
-	_ = image.Render(os.Stdout, tile, 200)
 	_ = image.Render(writer, tile, 200)
 }
 
