@@ -43,52 +43,69 @@ type svgBumper struct {
 	Height int
 }
 
-func Render(writer io.Writer, tile domain.Tile, size int) error {
-	pixelTracks := make([]svgTrack, 0, len(tile.Tracks))
-	offset := len(tile.Tracks) / 2
-	y := int(float64(size)/2 - float64(offset*size)*trackDistanceRel)
-	bumpers := make([]svgBumper, 0, 0)
-	for _, track := range tile.Tracks {
-		generated := svgTrack{Y: y, Length: size}
-		if track.BumperLeft {
-			bumpers = append(bumpers, newBumper(int(switchWidthRel*float64(size)), y, size))
-			generated.X = int(switchWidthRel * float64(size))
-			generated.Length = size - generated.X
-		} else if track.BumperRight {
-			bumpers = append(bumpers, newBumper(size-int(switchWidthRel*float64(size)), y, size))
-			generated.Length = generated.Length - int(switchWidthRel*float64(size))
-		}
-		pixelTracks = append(pixelTracks, generated)
-		y = y + int(float64(size)*trackDistanceRel)
-	}
-	switches := computeSwitches(tile.Tracks, pixelTracks, size)
-
-	return svgTemplate.Execute(writer, svgTile{Size: size, Tracks: pixelTracks, SwitchPaths: switches, Bumpers: bumpers})
+type Renderer struct {
+	writer io.Writer
+	size   int
 }
 
-func computeSwitches(tracks []domain.Track, pxTracks []svgTrack, size int) []string {
-	switchWidth := int(switchWidthRel * float64(size))
+func New(writer io.Writer, size int) Renderer {
+	return Renderer{writer: writer, size: size}
+}
+
+func (r *Renderer) Render(tile domain.Tile) error {
+	pixelTracks := make([]svgTrack, 0, len(tile.Tracks))
+	offset := len(tile.Tracks) / 2
+	y := int(float64(r.size)/2 - float64(offset*r.size)*trackDistanceRel)
+	for _, _ = range tile.Tracks {
+		generated := svgTrack{Y: y, Length: r.size}
+		pixelTracks = append(pixelTracks, generated)
+		y = y + int(float64(r.size)*trackDistanceRel)
+	}
+	switches := r.computeSwitches(tile.Tracks, pixelTracks)
+	bumpers := r.generateBumpers(tile.Tracks, pixelTracks)
+
+	return svgTemplate.Execute(r.writer, svgTile{Size: r.size, Tracks: pixelTracks, SwitchPaths: switches, Bumpers: bumpers})
+}
+
+func (r *Renderer) computeSwitches(tracks []domain.Track, pxTracks []svgTrack) []string {
+	switchWidth := int(switchWidthRel * float64(r.size))
 	switchPaths := make([]string, 0, 0)
-	switchStart := size - switchWidth
-	switchCp := size - switchWidth/2
+	switchStart := r.size - switchWidth
+	switchCp := r.size - switchWidth/2
 	for i, track := range tracks {
 		y := pxTracks[i].Y
 		for _, sw := range track.Switches {
-			target := y + int(float64(sw*size)*trackDistanceRel)
+			target := y + int(float64(sw*r.size)*trackDistanceRel)
 			merging := i < len(tracks)/2 && sw > 0 ||
 				i > len(tracks)/2 && sw < -0
 			if merging {
-				pxTracks[i].Length = size - switchWidth
+				pxTracks[i].Length = r.size - switchWidth
 			}
-			path := fmt.Sprintf("M%d,%d C%d,%d %d,%d, %d,%d", switchStart, y, switchCp, y, switchCp, target, size, target)
+			path := fmt.Sprintf("M%d,%d C%d,%d %d,%d, %d,%d", switchStart, y, switchCp, y, switchCp, target, r.size, target)
 			switchPaths = append(switchPaths, path)
 		}
 	}
 	return switchPaths
 }
 
-func newBumper(x int, y int, size int) svgBumper {
-	bumperSize := int(float64(size) * bumperSize)
+func (r *Renderer) generateBumpers(tracks []domain.Track, pxTracks []svgTrack) []svgBumper {
+	bumpers := make([]svgBumper, 0, 0)
+	for i, track := range tracks {
+		bumperLocation := int(switchWidthRel * float64(r.size))
+		if track.BumperLeft {
+			bumpers = append(bumpers, r.newBumper(bumperLocation, pxTracks[i].Y))
+			pxTracks[i].X = bumperLocation
+			pxTracks[i].Length = r.size - pxTracks[i].X
+		} else if track.BumperRight {
+			bumpers = append(bumpers, r.newBumper(r.size-bumperLocation, pxTracks[i].Y))
+			pxTracks[i].Length = pxTracks[i].Length - bumperLocation
+		}
+	}
+	return bumpers
+}
+
+func (r *Renderer) newBumper(x int, y int) svgBumper {
+	bumperSize := int(float64(r.size) * bumperSize)
 	return svgBumper{
 		X:      x,
 		Y:      y - bumperSize/2,
