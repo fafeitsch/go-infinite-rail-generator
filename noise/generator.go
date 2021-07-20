@@ -13,7 +13,7 @@ func (n *Noise) Generate(hectometer int) domain.Tile {
 
 	tracks := mandatorySwitches(tile, left, right)
 
-	return domain.Tile{Tracks: tracks}
+	return domain.Tile{Tracks: tracks, Seed: n.Seed}
 }
 
 type tileGenerator struct {

@@ -3,6 +3,7 @@ package domain
 type Offset int
 
 type Tile struct {
+	Seed   string
 	Tracks []Track
 	Offset int
 }

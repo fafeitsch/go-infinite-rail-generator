@@ -25,6 +25,7 @@ const bumperSize = 0.025
 
 type svgTile struct {
 	Size        int
+	Seed        string
 	Tracks      []svgTrack
 	SwitchPaths []string
 	Bumpers     []svgBumper
@@ -64,7 +65,7 @@ func (r *Renderer) Render(tile domain.Tile) error {
 	switches := r.computeSwitches(tile.Tracks, pixelTracks)
 	bumpers := r.generateBumpers(tile.Tracks, pixelTracks)
 
-	return svgTemplate.Execute(r.writer, svgTile{Size: r.size, Tracks: pixelTracks, SwitchPaths: switches, Bumpers: bumpers})
+	return svgTemplate.Execute(r.writer, svgTile{Size: r.size, Seed: tile.Seed, Tracks: pixelTracks, SwitchPaths: switches, Bumpers: bumpers})
 }
 
 func (r *Renderer) computeSwitches(tracks []domain.Track, pxTracks []svgTrack) []string {

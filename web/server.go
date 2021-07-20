@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func ApiHandler(defaultNoise *noise.Noise) http.HandlerFunc {
+func ApiHandler(defaultNoise *noise.Noise, shift int) http.HandlerFunc {
 	return func(writer http.ResponseWriter, r *http.Request) {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		var head string
@@ -19,14 +19,14 @@ func ApiHandler(defaultNoise *noise.Noise) http.HandlerFunc {
 		head, r.URL.Path = shiftPath(r.URL.Path)
 		switch head {
 		case "tiles":
-			serveTile(defaultNoise, writer, r)
+			serveTile(defaultNoise, shift, writer, r)
 			break
 		case "config":
 			serveConfig(defaultNoise, writer, r)
 			break
 		default:
 			r.URL.Path = originalPath
-			http.FileServer(http.Dir("./web/app/dist/app")).ServeHTTP(writer, r)
+			http.FileServer(http.Dir("./html")).ServeHTTP(writer, r)
 		}
 	}
 }
@@ -40,20 +40,12 @@ func shiftPath(p string) (head, tail string) {
 	return p[1:i], p[i:]
 }
 
-func serveTile(defaultNoise *noise.Noise, writer http.ResponseWriter, r *http.Request) {
+func serveTile(defaultNoise *noise.Noise, shift int, writer http.ResponseWriter, r *http.Request) {
 	y := r.URL.Query().Get("vertical")
 	if y != "131072" {
 		return
 	}
 	seedString := r.URL.Query().Get("seed")
-	offset := 0
-	if r.URL.Query().Get("offset") != "" {
-		var err error
-		offset, err = strconv.Atoi(r.URL.Query().Get("offset"))
-		if err != nil {
-			http.Error(writer, fmt.Sprintf("The offset %s is not a valid number.", r.URL.Query().Get("offset")), http.StatusBadRequest)
-		}
-	}
 	hectometer, err := strconv.Atoi(r.URL.Query().Get("hectometer"))
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("The hectometer query parameter \"%s\" is not a valid number.", r.URL.Query().Get("hectometer")), http.StatusBadRequest)
@@ -65,7 +57,7 @@ func serveTile(defaultNoise *noise.Noise, writer http.ResponseWriter, r *http.Re
 	} else {
 		aNoise = noise.New(seedString)
 	}
-	tile := aNoise.Generate(hectometer - offset)
+	tile := aNoise.Generate(hectometer + shift)
 	writer.Header().Set("Content-Type", "image/svg+xml")
 	renderer := image.New(writer, 200)
 	_ = renderer.Render(tile)

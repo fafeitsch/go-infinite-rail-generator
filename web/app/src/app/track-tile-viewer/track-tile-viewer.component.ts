@@ -26,7 +26,7 @@ export class TrackTileViewerComponent {
   }
 
   layers$  = this.store.seed$.pipe(map(seed => [
-     tileLayer(`http://127.0.0.1:9551/tiles?hectometer={x}&vertical={y}&seed=${seed}&offset=131068`, {
+     tileLayer(`http://127.0.0.1:9551/tiles?hectometer={x}&vertical={y}&seed=${seed}`, {
         maxZoom: 18,
         minZoom: 18,
         attribution: 'go-infinite-rail-generator',
