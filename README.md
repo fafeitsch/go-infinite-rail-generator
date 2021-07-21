@@ -1,22 +1,106 @@
 # Go Infinite Rail Generator
 
-The Go Infinite Rail Generator procedurally generates a *one-dimensional* rail word. *One-dimensional*
-in this context means that the world is practically infinite, 
-to the left, and the right, like an infinite gift ribbon. In reality, the map spans 19 times the earth's equatorial perimeter.
+The Go Infinite Rail Generator procedurally generates a *one-dimensional* rail word. 
 
-Currently, the generator is work in progress and will be improved.
+![On generated world example](images/rails.png)
+
+The generator uses [Perlin Noise](https://en.wikipedia.org/wiki/Perlin_noise) to achieve a smooth
+distribution of tracks. It generates the world tile-wise. The above image consists of six tiles next
+to each other. A tile represents 100m of track. This results in a possible world size of 19 times the earth's equatorial perimeter.
+
+Currently, the generator is work in progress and will be improved by adding more structures and details
+to the generation algorithm.
+
+## Content
+
+1. [Features](#features)
+2. [Build Instructions](#build-instructions)
+3. [Render a single Tile](#render-a-single-tile)
+4. [Run a Tile Server](#run-a-tile-server)
 
 ## Features
 
 **Generated structures**
-* variable amount of tracks 
+
+* variable amount of tracks
 * areas with many tracks (e.g stations) and over-land tracks with only one or two tracks.
 * switches when tracks merge or diverge
 * siding tracks
 
 **Architecture**
+
 * Command-Line Tool to render a certain tile as SVG
-* A simple Web App to display the generated world dynamically
+* An OSM tile server to display the world like OSM maps
+* A simple web app to display the generated world dynamically
 
+## Build instructions
 
+You can either download the binaries from the Release tab (currently Linux only), or build the application from scratch.
 
+### Requirements
+
+* Go 1.16 or higher
+* npm 6.14.13 (only needed if you want to build the minimalistic Angular Frontend)
+
+### Only Go Application
+
+If you just want to render SVG tiles locally, or running the tile server, it suffices to execute
+
+```
+go build cmd/rail-generator.go
+```
+
+### Go Application and Web Frontend
+
+If you want the minimalistic web frontend, too, just execute the command
+
+```
+/bin/bash build.sh
+```
+
+It compiles both the Go application and the frontend and puts everything in a directory `dist`. If you cannot execute
+bash, the manual steps are:
+
+1. Build the Angular app: `npm run-script build`
+2. Rename the `dist` directory into `html`.
+3. Put the [generated Go file](#only-go-application) into the same directory as the `html` directory.
+
+## Render a single tile
+
+The following command renders a single tile to the standard output:
+
+`rail-generator [--seed=SEED] svg [--tile=TILE] [--size=SIZE]`
+
+If a seed is given, then subsequent executions of the command will produce the same rail world. The
+`tile` flag signifies which tile of the world is rendered, it defaults to "0". The `size` is the size of the SVG in
+pixel and is 200 pixel as default.
+
+## Run a tile-server
+
+To run a tile server, execute the following command:
+
+`rail-generator [--seed=SEED] serve [--bind=BIND] [--port=PORT] [--shift=SHIFT]`
+
+The seed has the same function as in the [rendering usecase](#render-a-single-tile). The flags `bind` and
+`port` define how the tile server is reachable. If they are omitted, the server binds to *127.0.0.1:9551*.
+
+The `shift` flag is a number which is added onto the *x* coordinate on each request to the tile server. The default is
+-131068. If you use a library like [Leaflet](https://leafletjs.com/) or [Openlayers](https://openlayers.org/) to display the tiles, the library will request the tile *
+x=121068, y=131072* at coordinates *longitude=1, latitude=0.00138* with *zoom=18*. Thus, via shifting, the map shows the
+first world tile at these coordinates near the origin.
+
+The command runs a server with three endpoints:
+
+* `GET /tiles?tile={x}&vertical={y}&seed=${seed}` Returns the *x-shift* world tile. Since the generated world is
+  one-dimensional, the endpoint returns an empty SVG for values of *y* other than 131072. Since this value is near the
+  equator, the maximal size of the world is used. The seed request parameter allows to overwrite the default seed (see
+  progam flags) temporarily for the request.
+* `GET /config` Returns a JSON file of the format `{"defaultSeed":"defaultSeed"}`.
+* `GET /` (and any other endpoint) Can be used in browsers to download a minimalistic web app. This app utilizes Leaflet
+  to explore the world.
+  
+The tile server is configured to allow CORS requests.
+  
+## License
+
+MIT. See [License](LICENSE).

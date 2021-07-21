@@ -1,4 +1,4 @@
-package image
+package renderer
 
 import (
 	_ "embed"

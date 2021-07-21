@@ -3,8 +3,8 @@ package web
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/fafeitsch/go-infinite-rail-generator/image"
 	"github.com/fafeitsch/go-infinite-rail-generator/noise"
+	"github.com/fafeitsch/go-infinite-rail-generator/renderer"
 	"net/http"
 	"path"
 	"strconv"
@@ -46,9 +46,9 @@ func serveTile(defaultNoise *noise.Noise, shift int, writer http.ResponseWriter,
 		return
 	}
 	seedString := r.URL.Query().Get("seed")
-	hectometer, err := strconv.Atoi(r.URL.Query().Get("hectometer"))
+	hectometer, err := strconv.Atoi(r.URL.Query().Get("tile"))
 	if err != nil {
-		http.Error(writer, fmt.Sprintf("The hectometer query parameter \"%s\" is not a valid number.", r.URL.Query().Get("hectometer")), http.StatusBadRequest)
+		http.Error(writer, fmt.Sprintf("The tile query parameter \"%s\" is not a valid number.", r.URL.Query().Get("tile")), http.StatusBadRequest)
 		return
 	}
 	var aNoise *noise.Noise
@@ -59,8 +59,8 @@ func serveTile(defaultNoise *noise.Noise, shift int, writer http.ResponseWriter,
 	}
 	tile := aNoise.Generate(hectometer + shift)
 	writer.Header().Set("Content-Type", "image/svg+xml")
-	renderer := image.New(writer, 200)
-	_ = renderer.Render(tile)
+	rn := renderer.New(writer, 200)
+	_ = rn.Render(tile)
 }
 
 type configDto struct {

@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/fafeitsch/go-infinite-rail-generator/image"
 	"github.com/fafeitsch/go-infinite-rail-generator/noise"
+	"github.com/fafeitsch/go-infinite-rail-generator/renderer"
 	"github.com/fafeitsch/go-infinite-rail-generator/web"
 	"github.com/urfave/cli/v2"
+	"log"
 	"net/http"
 	"os"
 )
@@ -18,13 +19,14 @@ const shiftFlag = "shift"
 const seedFlag = "seed"
 
 func main() {
-	_ = (&cli.App{
+	err := (&cli.App{
 		Name:            "rail-generator",
 		Usage:           "A procedural rail line generator",
 		UsageText:       "rail-generator [global options] command [command options]",
 		HideHelpCommand: true,
 		Copyright:       "2021, Fabian Feitsch (info@fafeitsch.de), Licensed under MIT",
 		Authors:         []*cli.Author{{Name: "Fabian Feitsch"}},
+		Version:         "0.1.0",
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: seedFlag, Usage: "The seed for generating the world. The same seed produces the same world if used on the same version."},
 		},
@@ -50,6 +52,9 @@ func main() {
 			},
 		},
 	}).Run(os.Args)
+	if err != nil {
+		log.Fatalf("Program exited abnormally: %v", err)
+	}
 }
 
 func renderSingleTile(context *cli.Context) error {
@@ -63,8 +68,8 @@ func renderSingleTile(context *cli.Context) error {
 		size = 200
 	}
 	tile := defaultNoise.Generate(hectometer)
-	renderer := image.New(os.Stdout, size)
-	return fmt.Errorf("could not render tile %d: %v", hectometer, renderer.Render(tile))
+	rn := renderer.New(os.Stdout, size)
+	return fmt.Errorf("could not render tile %d: %v", hectometer, rn.Render(tile))
 }
 
 func getNoise(context *cli.Context) (*noise.Noise, error) {
