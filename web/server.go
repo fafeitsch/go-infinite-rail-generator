@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/fafeitsch/go-infinite-rail-generator/noise"
 	"github.com/fafeitsch/go-infinite-rail-generator/renderer"
+	"github.com/fafeitsch/go-infinite-rail-generator/version"
 	"net/http"
 	"path"
 	"strconv"
@@ -64,10 +65,16 @@ func serveTile(defaultNoise *noise.Noise, shift int, writer http.ResponseWriter,
 }
 
 type configDto struct {
+	Version     string `json:"version"`
+	BuildTime   string `json:"buildTime"`
 	DefaultSeed string `json:"defaultSeed"`
 }
 
 func serveConfig(defaultNoise *noise.Noise, writer http.ResponseWriter, r *http.Request) {
-	config := configDto{DefaultSeed: defaultNoise.Seed}
+	config := configDto{
+		DefaultSeed: defaultNoise.Seed,
+		BuildTime:   version.BuildTime,
+		Version:     version.BuildVersion,
+	}
 	_ = json.NewEncoder(writer).Encode(config)
 }

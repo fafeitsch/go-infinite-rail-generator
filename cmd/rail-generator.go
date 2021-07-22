@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/fafeitsch/go-infinite-rail-generator/noise"
 	"github.com/fafeitsch/go-infinite-rail-generator/renderer"
+	"github.com/fafeitsch/go-infinite-rail-generator/version"
 	"github.com/fafeitsch/go-infinite-rail-generator/web"
 	"github.com/urfave/cli/v2"
 	"log"
@@ -26,7 +27,7 @@ func main() {
 		HideHelpCommand: true,
 		Copyright:       "2021, Fabian Feitsch (info@fafeitsch.de), Licensed under MIT",
 		Authors:         []*cli.Author{{Name: "Fabian Feitsch"}},
-		Version:         "0.1.0",
+		Version:         fmt.Sprintf("%s (%s)", version.BuildVersion, version.BuildTime),
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: seedFlag, Usage: "The seed for generating the world. The same seed produces the same world if used on the same version."},
 		},

@@ -34,6 +34,8 @@ export class TrackTileViewerComponent {
       ]))
 
   defaultSeed$ = this.store.seed$;
+  version$ = this.store.version$;
+  buildTime$ = this.store.buildTime$;
 
   bounding = new LatLngBounds(
     { lat: -0.00069 * 2, lng: -181 },

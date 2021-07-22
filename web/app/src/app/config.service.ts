@@ -4,6 +4,8 @@ import { environment } from '../environments/environment';
 
 export interface ConfigDto {
   defaultSeed: string;
+  buildTime: string;
+  version: string;
 }
 
 @Injectable({ providedIn: 'root' })
