@@ -1,14 +1,6 @@
 {{- /*gotype: github.com/fafeitsch/go-infinite-rail-generator/image.svgTile*/ -}}
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="{{.Size}}" height="{{.Size}}">
     <rect width="100%" height="100%" fill="white"/>
-    {{range $key,$val := .Tracks}}
-    <line x1="{{$val.X}}" y1="{{$val.Y}}" x2="{{add $val.X $val.Length}}" y2="{{$val.Y}}" stroke="black" stroke-width="2px"/>{{end}}
-
-    {{range $key,$val := .SwitchPaths}}
+    {{range $key,$val := track .Size .Rails}}
     <path fill="none" stroke="black" stroke-width="2px" d="{{$val}}"/>{{end}}
-    <text stroke="black" x="0" y="15">{{len $.Tracks}}</text>
-
-    {{range $key,$val := .Bumpers}}
-    <rect stroke="black" fill="white" stroke-width="2px" x="{{$val.X}}" y="{{$val.Y}}" width="{{$val.Width}}" height="{{$val.Height}}"/>
-    {{end}}
 </svg>

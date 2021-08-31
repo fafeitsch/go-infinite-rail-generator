@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/fafeitsch/go-infinite-rail-generator/domain"
 	"io"
+	"math"
 	"text/template"
 )
 
@@ -15,32 +16,62 @@ var templateFunctions = template.FuncMap{
 	"add": func(a int, b int) int {
 		return a + b
 	},
+	"track": func(size int, tracks domain.Tracks) []string {
+		beta := size / 3
+		gamma := 2 * size / 3
+		result := make([]string, 0)
+		result = computePaths(float64(size), tracks.Alpha, 0, result)
+		result = computePaths(float64(size), tracks.Beta, float64(beta), result)
+		result = computePaths(float64(size), tracks.Gamma, float64(gamma), result)
+		result = computeBumpers(float64(size), tracks, result)
+		return result
+	},
+}
+
+func computePaths(size float64, column [16]domain.Connectors, x float64, result []string) []string {
+	offset := size / 16 / 2
+	next := int(math.Ceil(x + size/3/2))
+	for i, connectors := range column {
+		y := int(math.Floor(float64(i)*size/16 + offset))
+		for _, connector := range connectors {
+			var path string
+			target := int(math.Floor(float64(connector.Slot)*size/16 + offset))
+			path = fmt.Sprintf("M %d,%d C%d,%d %d,%d, %d,%d", int(x), y, next, y, next, target, int(x+(math.Ceil(size/3))), target)
+			result = append(result, path)
+		}
+	}
+	return result
+}
+
+func computeBumpers(size float64, tracks domain.Tracks, result []string) []string {
+	gamma := 2 * size / 3
+	offset := size / 16 / 2
+	bumperWidth := int(size / 16 / 2)
+	beta := size/3 - float64(bumperWidth)
+	connectorsToGamma := tracks.BuildConnectorMap(domain.Beta, domain.Gamma)
+	for i, connectors := range tracks.Gamma {
+		if len(connectors) == 0 && connectorsToGamma[i] {
+			y := int(math.Floor(float64(i)*size/16 + offset))
+			path := fmt.Sprintf("M %d %d h %d v %d h %d Z", int(gamma), y-bumperWidth/2, bumperWidth, bumperWidth, -bumperWidth)
+			result = append(result, path)
+		}
+	}
+	connectorsToBeta := tracks.BuildConnectorMap(domain.Alpha, domain.Beta)
+	for i, connectors := range tracks.Beta {
+		if !connectorsToBeta[i] && len(connectors) > 0 {
+			y := int(math.Floor(float64(i)*size/16 + offset))
+			path := fmt.Sprintf("M %d %d h %d v %d h %d Z", int(beta), y-bumperWidth/2, bumperWidth, bumperWidth, -bumperWidth)
+			result = append(result, path)
+		}
+	}
+	return result
 }
 
 var svgTemplate = template.Must(template.New("svgTemplate").Funcs(templateFunctions).Parse(templateString))
 
-const switchWidthRel = 0.5
-const trackDistanceRel = 0.1
-const bumperSize = 0.025
-
 type svgTile struct {
-	Size        int
-	Tracks      []svgTrack
-	SwitchPaths []string
-	Bumpers     []svgBumper
-}
-
-type svgTrack struct {
-	X      int
-	Y      int
-	Length int
-}
-
-type svgBumper struct {
-	X      int
-	Y      int
-	Width  int
-	Height int
+	Size  int
+	Rails domain.Tracks
 }
 
 type Renderer struct {
@@ -52,64 +83,6 @@ func New(writer io.Writer, size int) Renderer {
 	return Renderer{writer: writer, size: size}
 }
 
-func (r *Renderer) Render(tile domain.Tile) error {
-	pixelTracks := make([]svgTrack, 0, len(tile.Tracks))
-	offset := len(tile.Tracks) / 2
-	y := int(float64(r.size)/2 - float64(offset*r.size)*trackDistanceRel)
-	for _, _ = range tile.Tracks {
-		generated := svgTrack{Y: y, Length: r.size}
-		pixelTracks = append(pixelTracks, generated)
-		y = y + int(float64(r.size)*trackDistanceRel)
-	}
-	switches := r.computeSwitches(tile.Tracks, pixelTracks)
-	bumpers := r.generateBumpers(tile.Tracks, pixelTracks)
-
-	return svgTemplate.Execute(r.writer, svgTile{Size: r.size, Tracks: pixelTracks, SwitchPaths: switches, Bumpers: bumpers})
-}
-
-func (r *Renderer) computeSwitches(tracks []domain.Track, pxTracks []svgTrack) []string {
-	switchWidth := int(switchWidthRel * float64(r.size))
-	switchPaths := make([]string, 0, 0)
-	switchStart := r.size - switchWidth
-	switchCp := r.size - switchWidth/2
-	for i, track := range tracks {
-		y := pxTracks[i].Y
-		for _, sw := range track.Switches {
-			target := y + int(float64(sw*r.size)*trackDistanceRel)
-			merging := i < len(tracks)/2 && sw > 0 ||
-				i > len(tracks)/2 && sw < -0
-			if merging {
-				pxTracks[i].Length = r.size - switchWidth
-			}
-			path := fmt.Sprintf("M%d,%d C%d,%d %d,%d, %d,%d", switchStart, y, switchCp, y, switchCp, target, r.size, target)
-			switchPaths = append(switchPaths, path)
-		}
-	}
-	return switchPaths
-}
-
-func (r *Renderer) generateBumpers(tracks []domain.Track, pxTracks []svgTrack) []svgBumper {
-	bumpers := make([]svgBumper, 0, 0)
-	for i, track := range tracks {
-		bumperLocation := int(switchWidthRel * float64(r.size))
-		if track.BumperLeft {
-			bumpers = append(bumpers, r.newBumper(bumperLocation, pxTracks[i].Y))
-			pxTracks[i].X = bumperLocation
-			pxTracks[i].Length = r.size - pxTracks[i].X
-		} else if track.BumperRight {
-			bumpers = append(bumpers, r.newBumper(r.size-bumperLocation, pxTracks[i].Y))
-			pxTracks[i].Length = pxTracks[i].Length - bumperLocation
-		}
-	}
-	return bumpers
-}
-
-func (r *Renderer) newBumper(x int, y int) svgBumper {
-	bumperSize := int(float64(r.size) * bumperSize)
-	return svgBumper{
-		X:      x,
-		Y:      y - bumperSize/2,
-		Width:  bumperSize,
-		Height: bumperSize,
-	}
+func (r *Renderer) Render(tile *domain.Tile) error {
+	return svgTemplate.Execute(r.writer, svgTile{Size: r.size, Rails: tile.Tracks})
 }

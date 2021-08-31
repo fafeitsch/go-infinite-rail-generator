@@ -1,37 +1,77 @@
 package noise
 
-import "math/rand"
+import (
+	"github.com/fafeitsch/go-infinite-rail-generator/domain"
+	"math/rand"
+)
 
-type shallowTile struct {
-	tracks      int
-	bumperLeft  []bool
-	bumperRight []bool
+type rndTile struct {
+	*domain.Tile
+	seed float64
 }
 
-func (n *Noise) generateShallowTile(hectometer int) shallowTile {
-	seed := n.interpolate(hectometer)
-	source := rand.NewSource(int64(seed * 10e10))
-	random := rand.New(source)
+type side int
 
-	result := shallowTile{tracks: numberOfTracks(seed)}
-	result.bumperRight = make([]bool, result.tracks)
-	result.bumperLeft = make([]bool, result.tracks)
-	for i := 0; i < result.tracks; i++ {
-		result.bumperLeft[i] = random.Float64() < 0.1
-		result.bumperRight[i] = random.Float64() < 0.1
-	}
-	return result
+const (
+	leftSide  side = 43
+	rightSide      = 73
+)
+
+func (r *rndTile) rollBumperDice(slot int, side side) bool {
+	source := rand.NewSource(int64(r.seed*10e10) + int64(slot) + int64(side))
+	return rand.New(source).Float64() < 0.3
 }
 
-func numberOfTracks(seed float64) int {
-	if seed < 0.2 {
-		return 1
+func (r *rndTile) fixNecessarySwitches(right rndTile) {
+	rightConnectors := make(map[int]bool)
+	for i, connectors := range right.Tracks.Alpha {
+		rightConnectors[i] = len(connectors) > 0
 	}
-	if seed < 0.6 {
-		return 2
+	for i, track := range r.Tracks.Gamma {
+		underTest := track.FindConnector(domain.Omega, i)
+		var j int
+		if underTest != nil && !rightConnectors[i] {
+			if r.rollBumperDice(i, rightSide) {
+				r.Tracks.Gamma[i] = track[:0]
+				continue
+			} else if i <= len(r.Tracks.Gamma)/2 {
+				j = i + 1
+				for !rightConnectors[j] && j <= len(r.Tracks.Gamma)-1 {
+					j = j + 1
+				}
+			} else {
+				j = i - 1
+				for !rightConnectors[j] && j >= 0 {
+					j = j - 1
+				}
+			}
+			underTest.Slot = j
+		} else if underTest == nil && rightConnectors[i] {
+			if right.rollBumperDice(i, leftSide) {
+				continue
+			}
+			if i <= len(r.Tracks.Gamma)/2 {
+				j = i + 1
+				for len(r.Tracks.Gamma[j]) == 0 {
+					j = j + 1
+				}
+			} else {
+				j = i - 1
+				for len(r.Tracks.Gamma[j]) == 0 {
+					j = j - 1
+				}
+			}
+			r.Tracks.Gamma[j] = append(r.Tracks.Gamma[j], &domain.Connector{Target: domain.Omega, Slot: i})
+		}
 	}
-	if seed < 0.7 {
-		return 3
+}
+
+func (r *rndTile) fixLeftSideBumpers(left rndTile) {
+	leftConnectors := left.Tracks.BuildConnectorMap(domain.Gamma, domain.Omega)
+	for i, connectors := range r.Tracks.Alpha {
+		hasRightConnector := len(connectors) > 0
+		if !leftConnectors[i] && hasRightConnector {
+			r.Tracks.Alpha[i] = connectors[:0]
+		}
 	}
-	return int(seed*10 - 3)
 }

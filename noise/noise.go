@@ -47,3 +47,17 @@ func (n *Noise) interpolate(hectometer int) float64 {
 
 	return n.source[xMin]*(1-smoothDeltaX) + n.source[xMax]*smoothDeltaX
 }
+
+func (n *Noise) numberOfTracks(hectometer int) int {
+	seed := n.interpolate(hectometer)
+	if seed < 0.2 {
+		return 1
+	}
+	if seed < 0.6 {
+		return 2
+	}
+	if seed < 0.7 {
+		return 3
+	}
+	return int(seed*10 - 3)
+}
