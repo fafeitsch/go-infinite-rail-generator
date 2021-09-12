@@ -26,6 +26,7 @@ var templateFunctions = template.FuncMap{
 		result = computeBumpers(float64(size), tracks, result)
 		return result
 	},
+	"platform": computePlatforms,
 }
 
 func computePaths(size float64, column [16]domain.Connectors, x float64, result []string) []string {
@@ -67,11 +68,30 @@ func computeBumpers(size float64, tracks domain.Tracks, result []string) []strin
 	return result
 }
 
+func computePlatforms(size int, platforms domain.Platforms) []string {
+	result := make([]string, 0, 0)
+	offset := size / 16 / 2
+	for i, _ := range platforms.Alpha {
+		y := int(math.Floor(float64(i)*float64(size)/16)) - offset + 2
+		height := size/16 - 4
+		if platforms.Alpha[i] {
+			result = append(result, fmt.Sprintf("M 0 %d h %d v %d H 0 Z", y, int(math.Ceil(float64(size)/3)), height))
+		}
+		if platforms.Beta[i] {
+			result = append(result, fmt.Sprintf("M %d %d h %d v %d h -%d Z", size/3, y, size/3, height, size/3))
+		}
+		if platforms.Gamma[i] {
+			result = append(result, fmt.Sprintf("M %d %d H %d v %d h -%d Z", 2*size/3, y, size, height, int(math.Ceil(2*float64(size)/3))))
+		}
+	}
+	return result
+}
+
 var svgTemplate = template.Must(template.New("svgTemplate").Funcs(templateFunctions).Parse(templateString))
 
 type svgTile struct {
-	Size  int
-	Rails domain.Tracks
+	*domain.Tile
+	Size int
 }
 
 type Renderer struct {
@@ -84,5 +104,5 @@ func New(writer io.Writer, size int) Renderer {
 }
 
 func (r *Renderer) Render(tile *domain.Tile) error {
-	return svgTemplate.Execute(r.writer, svgTile{Size: r.size, Rails: tile.Tracks})
+	return svgTemplate.Execute(r.writer, svgTile{Size: r.size, Tile: tile})
 }

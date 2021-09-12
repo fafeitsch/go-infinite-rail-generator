@@ -22,7 +22,12 @@ func (r *rndTile) rollBumperDice(slot int, side side) bool {
 	return rand.New(source).Float64() < 0.3
 }
 
-func (r *rndTile) fixNecessarySwitches(right rndTile) {
+func (r *rndTile) centerPlatform() bool {
+	source := rand.NewSource(int64(r.seed*10e10) + 98)
+	return rand.New(source).Float64() < 0.5
+}
+
+func (r *rndTile) fixNecessarySwitches(right *rndTile) {
 	rightConnectors := make(map[int]bool)
 	for i, connectors := range right.Tracks.Alpha {
 		rightConnectors[i] = len(connectors) > 0
@@ -66,7 +71,7 @@ func (r *rndTile) fixNecessarySwitches(right rndTile) {
 	}
 }
 
-func (r *rndTile) fixLeftSideBumpers(left rndTile) {
+func (r *rndTile) fixLeftSideBumpers(left *rndTile) {
 	leftConnectors := left.Tracks.BuildConnectorMap(domain.Gamma, domain.Omega)
 	for i, connectors := range r.Tracks.Alpha {
 		hasRightConnector := len(connectors) > 0

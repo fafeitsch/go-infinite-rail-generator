@@ -61,7 +61,10 @@ func serveTile(defaultNoise *noise.Noise, shift int, writer http.ResponseWriter,
 	tile := aNoise.Generate(hectometer + shift)
 	writer.Header().Set("Content-Type", "image/svg+xml")
 	rn := renderer.New(writer, 200)
-	_ = rn.Render(tile)
+	err = rn.Render(tile)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 type configDto struct {

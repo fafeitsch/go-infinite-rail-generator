@@ -7,14 +7,16 @@ import (
 type Offset int
 
 type Tile struct {
-	Seed   string
-	Offset int
-	Tracks Tracks
+	Seed      string
+	Offset    int
+	Tracks    Tracks
+	Platforms Platforms
+	Station   bool
 }
 
 func NewTile(seed string, tracks int) *Tile {
-	if tracks > 16 || tracks <= 0 {
-		panic(fmt.Sprintf("the number of tracks must be between 16 and 1 (inclusive), but was %d", tracks))
+	if tracks > 16 || tracks < 0 {
+		panic(fmt.Sprintf("the number of tracks must be between 16 and 0 (inclusive), but was %d", tracks))
 	}
 	first := 8 - tracks/2
 	rails := Tracks{}
@@ -24,16 +26,6 @@ func NewTile(seed string, tracks int) *Tile {
 		rails.Gamma[track] = []*Connector{{Target: Omega, Slot: track}}
 	}
 	return &Tile{Seed: seed, Tracks: rails}
-}
-
-func (t *Tile) countAlphaTracks() int {
-	result := 0
-	for _, connectors := range t.Tracks.Alpha {
-		if len(connectors) != 0 {
-			result = result + 1
-		}
-	}
-	return result
 }
 
 func (t *Tile) countOmegaTracks() int {
@@ -60,6 +52,12 @@ type Tracks struct {
 	Gamma [16]Connectors
 }
 
+type Platforms struct {
+	Alpha [17]bool
+	Beta  [17]bool
+	Gamma [17]bool
+}
+
 func (t *Tracks) Get(target Column) [16]Connectors {
 	switch target {
 	case Alpha:
@@ -70,6 +68,14 @@ func (t *Tracks) Get(target Column) [16]Connectors {
 		return t.Gamma
 	}
 	panic(fmt.Sprintf("no connectors from column %v available", target))
+}
+
+func (t *Tracks) AlphaTracks() [16]bool {
+	var result [16]bool
+	for i, connectors := range t.Alpha {
+		result[i] = len(connectors) > 0
+	}
+	return result
 }
 
 func (t *Tracks) BuildConnectorMap(source Column, target Column) [16]bool {

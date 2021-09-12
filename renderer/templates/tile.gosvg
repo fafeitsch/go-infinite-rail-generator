@@ -1,6 +1,9 @@
-{{- /*gotype: github.com/fafeitsch/go-infinite-rail-generator/image.svgTile*/ -}}
+{{- /*gotype: github.com/fafeitsch/go-infinite-rail-generator/domain.Tile*/ -}}
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="{{.Size}}" height="{{.Size}}">
     <rect width="100%" height="100%" fill="white"/>
-    {{range $key,$val := track .Size .Rails}}
+    {{range $key,$val := track .Size .Tracks}}
     <path fill="none" stroke="black" stroke-width="2px" d="{{$val}}"/>{{end}}
+
+    {{range $key, $val := platform .Size .Platforms}}
+    <path fill="grey" stroke="none" d="{{$val}}/"/>{{end}}
 </svg>
