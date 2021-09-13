@@ -15,8 +15,9 @@ to the generation algorithm.
 
 1. [Features](#features)
 2. [Build Instructions](#build-instructions)
-3. [Render a single Tile](#render-a-single-tile)
-4. [Run a Tile Server](#run-a-tile-server)
+3. [Optional Prerequisites](#optional-prerequisites)
+5. [Run a Tile Server](#run-a-tile-server)
+4. [Custom Town Names](#custom-town-names)
 
 ## Features
 
@@ -26,6 +27,7 @@ to the generation algorithm.
 * areas with many tracks (e.g stations) and over-land tracks with only one or two tracks.
 * switches when tracks merge or diverge
 * siding tracks
+* station platforms with station names
 
 **Architecture**
 
@@ -65,11 +67,12 @@ bash, the manual steps are:
 2. Rename the `dist` directory into `html`.
 3. Put the [generated Go file](#only-go-application) into the same directory as the `html` directory.
 
+
 ## Render a single tile
 
 The following command renders a single tile to the standard output:
 
-`rail-generator [--seed=SEED] svg [--tile=TILE] [--size=SIZE]`
+`rail-generator [--seed=SEED] [--towns=TOWNS] svg [--tile=TILE] [--size=SIZE]`
 
 If a seed is given, then subsequent executions of the command will produce the same rail world. The
 `tile` flag signifies which tile of the world is rendered, it defaults to "0". The `size` is the size of the SVG in
@@ -79,7 +82,7 @@ pixel and is 200 pixel as default.
 
 To run a tile server, execute the following command:
 
-`rail-generator [--seed=SEED] serve [--bind=BIND] [--port=PORT] [--shift=SHIFT]`
+`rail-generator [--seed=SEED] [--towns=TOWNS] serve [--bind=BIND] [--port=PORT] [--shift=SHIFT]`
 
 The seed has the same function as in the [rendering usecase](#render-a-single-tile). The flags `bind` and
 `port` define how the tile server is reachable. If they are omitted, the server binds to *127.0.0.1:9551*.
@@ -100,7 +103,32 @@ The command runs a server with three endpoints:
   to explore the world.
   
 The tile server is configured to allow CORS requests.
-  
+
+## Custom Town Names
+
+If the `towns` flag is not set, the program uses a simple list of the 25 biggest towns
+of Europe for naming the stations. If you want to use custom town names, you can set the `towns` flag
+to a text file containing a list of town names, one in each line. These names will be assigned
+randomly to the generated stations.
+
+To simply create a list of town names of a certain geographic area, you can
+issue the following Overpass Turbo query at [Overpass Turbo](https://overpass-turbo.eu/):
+
+```
+[out:csv('name';false)][timeout:25];
+(
+  node["place"="town"]({{bbox}});
+  node["place"="village"]({{bbox}});
+  node["place"="city"]({{bbox}});
+);
+out body;
+>;
+out skel qt;
+```
+
+The result is a list of all town, village, and city names in the currently visible
+map.
+
 ## License
 
 MIT. See [License](LICENSE).

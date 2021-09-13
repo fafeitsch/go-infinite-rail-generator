@@ -22,16 +22,6 @@ func (r *rndTile) createRandom(shift int) *rand.Rand {
 	return rand.New(rand.NewSource(int64(r.seed*10e10) + int64(shift)))
 }
 
-func (r *rndTile) rollBumperDice(slot int, side side) bool {
-	source := rand.NewSource(int64(r.seed*10e10) + int64(slot) + int64(side))
-	return rand.New(source).Float64() < 0.3
-}
-
-func (r *rndTile) centerPlatform() bool {
-	source := rand.NewSource(int64(r.seed*10e10) + 98)
-	return rand.New(source).Float64() < 0.5
-}
-
 func (r *rndTile) fixNecessarySwitches(right *rndTile) {
 	rightConnectors := make(map[int]bool)
 	for i, connectors := range right.Tracks.Alpha {
@@ -41,7 +31,7 @@ func (r *rndTile) fixNecessarySwitches(right *rndTile) {
 		underTest := track.FindConnector(domain.Omega, i)
 		var j int
 		if underTest != nil && !rightConnectors[i] {
-			if r.rollBumperDice(i, rightSide) {
+			if r.createRandom(i+rightSide).Float64() < 0.3 {
 				r.Tracks.Gamma[i] = track[:0]
 				continue
 			} else if i <= len(r.Tracks.Gamma)/2 {
@@ -57,7 +47,7 @@ func (r *rndTile) fixNecessarySwitches(right *rndTile) {
 			}
 			underTest.Slot = j
 		} else if underTest == nil && rightConnectors[i] {
-			if right.rollBumperDice(i, leftSide) {
+			if right.createRandom(i+int(leftSide)).Float64() < 0.3 {
 				continue
 			}
 			if i <= len(r.Tracks.Gamma)/2 {

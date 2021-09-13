@@ -31,7 +31,7 @@ func (g *Generator) buildStation(tiles []*rndTile) {
 				continue
 			}
 			if !tile.Platforms.Alpha[i] && !tile.Platforms.Alpha[i+1] {
-				if tiles[0].centerPlatform() && i%2 == 1 {
+				if tiles[0].createRandom(98).Float64() < 0.5 && i%2 == 1 {
 					tile.Platforms.Alpha[i] = true
 					tile.Platforms.Beta[i] = true
 					tile.Platforms.Gamma[i] = index != len(tiles)
