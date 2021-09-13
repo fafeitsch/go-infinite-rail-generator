@@ -6,4 +6,8 @@
 
     {{range $key, $val := platform .Size .Platforms}}
     <path fill="grey" stroke="none" d="{{$val}}/"/>{{end}}
+
+    {{if (ne .StationName "")}}
+    <text x="{{half .Size}}" y="20" text-anchor="middle" font-family="mono,sans-serif" font-size="0.8em">{{.StationName}}</text>
+    {{end}}
 </svg>

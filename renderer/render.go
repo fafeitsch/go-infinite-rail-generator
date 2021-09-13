@@ -16,6 +16,9 @@ var templateFunctions = template.FuncMap{
 	"add": func(a int, b int) int {
 		return a + b
 	},
+	"half": func(a int) int {
+		return a / 2
+	},
 	"track": func(size int, tracks domain.Tracks) []string {
 		beta := size / 3
 		gamma := 2 * size / 3

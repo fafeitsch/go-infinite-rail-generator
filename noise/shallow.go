@@ -7,7 +7,8 @@ import (
 
 type rndTile struct {
 	*domain.Tile
-	seed float64
+	seed    float64
+	station bool
 }
 
 type side int
@@ -16,6 +17,10 @@ const (
 	leftSide  side = 43
 	rightSide      = 73
 )
+
+func (r *rndTile) createRandom(shift int) *rand.Rand {
+	return rand.New(rand.NewSource(int64(r.seed*10e10) + int64(shift)))
+}
 
 func (r *rndTile) rollBumperDice(slot int, side side) bool {
 	source := rand.NewSource(int64(r.seed*10e10) + int64(slot) + int64(side))

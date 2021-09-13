@@ -17,42 +17,43 @@ func RandomSeed() (string, error) {
 	return base64.StdEncoding.EncodeToString(b), nil
 }
 
-type Noise struct {
+type noise struct {
 	source   [512]float64
 	sampling int
-	Seed     string
 }
 
-func New(seed string) *Noise {
+type Generator struct {
+	*noise
+	Seed      string
+	TownNames []string
+}
+
+func New(seed string) *Generator {
 	hash := fnv.New64a()
 	_, _ = hash.Write([]byte(seed))
 	hashSum := hash.Sum64()
-	result := createFromHashSum(hashSum)
-	result.Seed = seed
-	result.sampling = 30_000
-	return result
+	return &Generator{noise: createFromHashSum(hashSum, 30_000), Seed: seed}
 }
 
-func createFromHashSum(hashSum uint64) *Noise {
+func createFromHashSum(hashSum uint64, sampling int) *noise {
 	source := rand.NewSource(int64(hashSum))
 	random := rand.New(source)
-	result := Noise{source: [512]float64{}}
+	result := noise{source: [512]float64{}, sampling: sampling}
 	for i, _ := range result.source {
 		result.source[i] = random.Float64()
 	}
 	return &result
 }
 
-func (n *Noise) derive(sampling int) *Noise {
+func (g *Generator) derive(sampling int) *noise {
 	hash := fnv.New64a()
-	_, _ = hash.Write([]byte(n.Seed))
+	_, _ = hash.Write([]byte(g.Seed))
 	hashSum := hash.Sum64()
-	result := createFromHashSum(hashSum + 43)
-	result.sampling = sampling
+	result := createFromHashSum(hashSum+43, sampling)
 	return result
 }
 
-func (n *Noise) interpolate(hectometer int) float64 {
+func (n *noise) interpolate(hectometer int) float64 {
 	hectometer = hectometer % n.sampling
 	if hectometer < 0 {
 		hectometer = n.sampling + hectometer
@@ -66,11 +67,11 @@ func (n *Noise) interpolate(hectometer int) float64 {
 	return n.source[xMin]*(1-smoothDeltaX) + n.source[xMax]*smoothDeltaX
 }
 
-func (n *Noise) numberOfTracks(hectometer int) int {
+func (n *noise) numberOfTracks(hectometer int) int {
 	seed := n.interpolate(hectometer)
 	return int(math.Ceil((seed * 100) / 25))
 }
 
-func (n *Noise) isStation(hectometer int) bool {
+func (n *noise) isStation(hectometer int) bool {
 	return n.interpolate(hectometer) <= 0.2
 }

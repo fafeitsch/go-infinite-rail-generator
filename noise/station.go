@@ -1,11 +1,16 @@
 package noise
 
 import (
+	_ "embed"
 	"github.com/fafeitsch/go-infinite-rail-generator/domain"
 	"math"
+	"strings"
 )
 
-func buildStation(tiles []*rndTile) {
+//go:embed default_town_names.txt
+var defaultTownNames string
+
+func (g *Generator) buildStation(tiles []*rndTile) {
 	if len(tiles) == 0 {
 		return
 	}
@@ -37,14 +42,25 @@ func buildStation(tiles []*rndTile) {
 				}
 			}
 		}
+		if index == len(tiles)/2 {
+			tile.StationName = g.getStationName(tile)
+		}
 	}
+}
+
+func (g *Generator) getStationName(tile *rndTile) string {
+	if len(g.TownNames) == 0 {
+		g.TownNames = strings.Split(defaultTownNames, "\n")
+	}
+	index := tile.createRandom(99).Intn(len(g.TownNames))
+	return g.TownNames[index]
 }
 
 func stationWidth(start int, generator func(int) *rndTile) (int, []*rndTile) {
 	tiles := make([]*rndTile, 0, 0)
 	i := start - 1
 	tile := generator(i)
-	for tile.Station {
+	for tile.station {
 		i = i - 1
 		tiles = append(tiles, tile)
 		tile = generator(i)
@@ -55,7 +71,7 @@ func stationWidth(start int, generator func(int) *rndTile) (int, []*rndTile) {
 	tiles = append(tiles, generator(start))
 	j := start + 1
 	tile = generator(j)
-	for tile.Station {
+	for tile.station {
 		j = j + 1
 		tiles = append(tiles, tile)
 		tile = generator(j)

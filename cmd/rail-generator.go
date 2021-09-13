@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/fafeitsch/go-infinite-rail-generator/noise"
 	"github.com/fafeitsch/go-infinite-rail-generator/renderer"
@@ -18,6 +19,7 @@ const bindFlag = "bind"
 const portFlag = "port"
 const shiftFlag = "shift"
 const seedFlag = "seed"
+const townNameFlag = "towns"
 
 func main() {
 	err := (&cli.App{
@@ -30,6 +32,7 @@ func main() {
 		Version:         fmt.Sprintf("%s (%s)", version.BuildVersion, version.BuildTime),
 		Flags: []cli.Flag{
 			&cli.StringFlag{Name: seedFlag, Usage: "The seed for generating the world. The same seed produces the same world if used on the same version."},
+			&cli.StringFlag{Name: townNameFlag, Usage: "A path to a file which holds the town names to use, one town name per line. If empty, 25 default town names are used."},
 		},
 		Commands: []*cli.Command{
 			{
@@ -59,7 +62,7 @@ func main() {
 }
 
 func renderSingleTile(context *cli.Context) error {
-	defaultNoise, err := getNoise(context)
+	defaultNoise, err := getGenerator(context)
 	if err != nil {
 		return err
 	}
@@ -73,7 +76,7 @@ func renderSingleTile(context *cli.Context) error {
 	return fmt.Errorf("could not render tile %d: %v", hectometer, rn.Render(tile))
 }
 
-func getNoise(context *cli.Context) (*noise.Noise, error) {
+func getGenerator(context *cli.Context) (*noise.Generator, error) {
 	seed := context.String(seedFlag)
 	var err error
 	if seed == "" {
@@ -82,12 +85,29 @@ func getNoise(context *cli.Context) (*noise.Noise, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not generate random seed: %v", err)
 	}
-	defaultNoise := noise.New(seed)
-	return defaultNoise, nil
+	defaultGenerator := noise.New(seed)
+	townNameFile := context.String(townNameFlag)
+	if townNameFile != "" {
+		file, err := os.Open(townNameFile)
+		if err != nil {
+			return nil, fmt.Errorf("could not open town name file for reading: %v", err)
+		}
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			defaultGenerator.TownNames = append(defaultGenerator.TownNames, scanner.Text())
+		}
+
+		if err := scanner.Err(); err != nil {
+			return nil, fmt.Errorf("could not read from town name file: %v", err)
+		}
+	}
+	return defaultGenerator, nil
 }
 
 func runServer(context *cli.Context) error {
-	defaultNoise, err := getNoise(context)
+	defaultNoise, err := getGenerator(context)
 	if err != nil {
 		return err
 	}

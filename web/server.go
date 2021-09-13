@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func ApiHandler(defaultNoise *noise.Noise, shift int) http.HandlerFunc {
+func ApiHandler(defaultNoise *noise.Generator, shift int) http.HandlerFunc {
 	return func(writer http.ResponseWriter, r *http.Request) {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		var head string
@@ -41,7 +41,7 @@ func shiftPath(p string) (head, tail string) {
 	return p[1:i], p[i:]
 }
 
-func serveTile(defaultNoise *noise.Noise, shift int, writer http.ResponseWriter, r *http.Request) {
+func serveTile(defaultNoise *noise.Generator, shift int, writer http.ResponseWriter, r *http.Request) {
 	y := r.URL.Query().Get("vertical")
 	if y != "131072" {
 		return
@@ -52,11 +52,12 @@ func serveTile(defaultNoise *noise.Noise, shift int, writer http.ResponseWriter,
 		http.Error(writer, fmt.Sprintf("The tile query parameter \"%s\" is not a valid number.", r.URL.Query().Get("tile")), http.StatusBadRequest)
 		return
 	}
-	var aNoise *noise.Noise
+	var aNoise *noise.Generator
 	if seedString == "" || seedString == defaultNoise.Seed {
 		aNoise = defaultNoise
 	} else {
 		aNoise = noise.New(seedString)
+		aNoise.TownNames = defaultNoise.TownNames
 	}
 	tile := aNoise.Generate(hectometer + shift)
 	writer.Header().Set("Content-Type", "image/svg+xml")
@@ -73,7 +74,7 @@ type configDto struct {
 	DefaultSeed string `json:"defaultSeed"`
 }
 
-func serveConfig(defaultNoise *noise.Noise, writer http.ResponseWriter, r *http.Request) {
+func serveConfig(defaultNoise *noise.Generator, writer http.ResponseWriter, r *http.Request) {
 	config := configDto{
 		DefaultSeed: defaultNoise.Seed,
 		BuildTime:   version.BuildTime,

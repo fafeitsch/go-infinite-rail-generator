@@ -7,11 +7,11 @@ import (
 type Offset int
 
 type Tile struct {
-	Seed      string
-	Offset    int
-	Tracks    Tracks
-	Platforms Platforms
-	Station   bool
+	Seed        string
+	Offset      int
+	Tracks      Tracks
+	Platforms   Platforms
+	StationName string
 }
 
 func NewTile(seed string, tracks int) *Tile {
