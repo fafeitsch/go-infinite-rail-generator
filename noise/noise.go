@@ -4,7 +4,6 @@ import (
 	cryptoRand "crypto/rand"
 	"encoding/base64"
 	"hash/fnv"
-	"math"
 	"math/rand"
 )
 
@@ -65,13 +64,4 @@ func (n *noise) interpolate(hectometer int) float64 {
 	smoothDeltaX := deltaX * deltaX * (3 - 2*deltaX)
 
 	return n.source[xMin]*(1-smoothDeltaX) + n.source[xMax]*smoothDeltaX
-}
-
-func (n *noise) numberOfTracks(hectometer int) int {
-	seed := n.interpolate(hectometer)
-	return int(math.Ceil((seed * 100) / 25))
-}
-
-func (n *noise) isStation(hectometer int) bool {
-	return n.interpolate(hectometer) <= 0.2
 }
