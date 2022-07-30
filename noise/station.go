@@ -21,9 +21,24 @@ func (g *Generator) buildStation(tiles []*rndTile) {
 			if connected {
 				minConnected = int(math.Min(float64(minConnected), float64(i)))
 				maxConnected = int(math.Max(float64(maxConnected), float64(i)))
-				tile.Tracks.Alpha[i] = []*domain.Connector{{Target: domain.Beta, Slot: i}}
-				tile.Tracks.Beta[i] = []*domain.Connector{{Target: domain.Gamma, Slot: i}}
-				tile.Tracks.Gamma[i] = []*domain.Connector{{Target: domain.Omega, Slot: i}}
+				tile.Tracks.Alpha[i] = []*domain.Connector{
+					{
+						Target: domain.Beta,
+						Slot:   i,
+					},
+				}
+				tile.Tracks.Beta[i] = []*domain.Connector{
+					{
+						Target: domain.Gamma,
+						Slot:   i,
+					},
+				}
+				tile.Tracks.Gamma[i] = []*domain.Connector{
+					{
+						Target: domain.Omega,
+						Slot:   i,
+					},
+				}
 			}
 		}
 		for i, connected := range tiles[0].Tracks.AlphaTracks() {

@@ -26,18 +26,18 @@ func (g *Generator) Generate(hectometer int) *domain.Tile {
 
 type rndTile struct {
 	*domain.Tile
-	seed     float64
-	station  bool
-	junction int
+	fractional float64
+	station    bool
+	junction   int
 }
 
 func (g *Generator) createRndTile(hectometer int) *rndTile {
-	seed := g.interpolate(hectometer)
+	fractional := g.interpolate(hectometer, 30_000)
 	tile := &rndTile{
-		Tile: domain.NewTile(g.Seed, int(math.Ceil((seed*100)/25))),
-		seed: g.noise.interpolate(hectometer),
+		Tile:       domain.NewTile(g.Seed, int(math.Ceil((fractional*100)/25))),
+		fractional: fractional,
 	}
-	tile.station = g.derive(2_500).interpolate(hectometer) <= 0.2
+	tile.station = g.derive().interpolate(hectometer, 2_500) <= 0.2
 
 	return tile
 }
@@ -50,7 +50,7 @@ const (
 )
 
 func (r *rndTile) createRandom(shift int) *rand.Rand {
-	return rand.New(rand.NewSource(int64(r.seed*10e10) + int64(shift)))
+	return rand.New(rand.NewSource(int64(r.fractional*10e10) + int64(shift)))
 }
 
 func (r *rndTile) fixNecessarySwitches(right *rndTile) {
@@ -92,7 +92,10 @@ func (r *rndTile) fixNecessarySwitches(right *rndTile) {
 					j = j - 1
 				}
 			}
-			r.Tracks.Gamma[j] = append(r.Tracks.Gamma[j], &domain.Connector{Target: domain.Omega, Slot: i})
+			r.Tracks.Gamma[j] = append(r.Tracks.Gamma[j], &domain.Connector{
+				Target: domain.Omega,
+				Slot:   i,
+			})
 		}
 	}
 }
