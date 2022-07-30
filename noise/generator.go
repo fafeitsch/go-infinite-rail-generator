@@ -10,9 +10,7 @@ func (g *Generator) Generate(hectometer int) *domain.Tile {
 	tile := g.createRndTile(hectometer)
 
 	if tile.station {
-		start, stationTiles := stationWidth(hectometer, g.createRndTile)
-		g.buildStation(stationTiles)
-		tile = stationTiles[hectometer-start]
+		tile = g.buildStation(hectometer)
 	}
 
 	right := g.createRndTile(hectometer + 1)
