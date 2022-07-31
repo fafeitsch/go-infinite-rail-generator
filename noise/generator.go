@@ -10,7 +10,7 @@ func (g *Generator) Generate(hectometer int) *domain.Tile {
 	tile := g.createRndTile(hectometer)
 
 	if tile.station {
-		tile = g.buildStation(hectometer)
+		tile.buildStation()
 	}
 
 	right := g.createRndTile(hectometer + 1)
@@ -24,6 +24,7 @@ func (g *Generator) Generate(hectometer int) *domain.Tile {
 
 type rndTile struct {
 	*domain.Tile
+	generator  *Generator
 	fractional float64
 	station    bool
 	junction   int
@@ -34,8 +35,10 @@ func (g *Generator) createRndTile(hectometer int) *rndTile {
 	tile := &rndTile{
 		Tile:       domain.NewTile(g.Seed, int(math.Ceil((fractional*100)/25))),
 		fractional: fractional,
+		generator:  g,
 	}
 	tile.station = g.derive().interpolate(hectometer, 2_500) <= 0.2
+	tile.Hectometer = hectometer
 
 	return tile
 }

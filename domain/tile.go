@@ -7,6 +7,7 @@ import (
 // Tile contains all information that is required to build one tile of the rail network.
 type Tile struct {
 	Seed        string
+	Hectometer  int
 	Tracks      Tracks
 	Platforms   Platforms
 	StationName string

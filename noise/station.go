@@ -9,55 +9,44 @@ import (
 //go:embed default_town_names.txt
 var defaultTownNames string
 
-func (g *Generator) buildStation(hectometer int) *rndTile {
-	start, tiles := g.stationWidth(hectometer)
-	index := hectometer - start
-	relevantTile := tiles[hectometer-start]
-	relevantTile.replaceTrackLayout(tiles[0].Tracks.AlphaTracks())
-	for i, connected := range tiles[0].Tracks.AlphaTracks() {
+func (r *rndTile) buildStation() {
+	index, startTile, length := r.stationWidth()
+	r.replaceTrackLayout(startTile.Tracks.AlphaTracks())
+	for i, connected := range startTile.Tracks.AlphaTracks() {
 		if !connected {
 			continue
 		}
-		if !relevantTile.Platforms.Alpha[i] && !relevantTile.Platforms.Alpha[i+1] {
-			if tiles[0].createRandom(98).Float64() < 0.5 && i%2 == 1 {
-				relevantTile.Platforms.Alpha[i] = true
-				relevantTile.Platforms.Beta[i] = true
-				relevantTile.Platforms.Gamma[i] = index != len(tiles)
+		if !r.Platforms.Alpha[i] && !r.Platforms.Alpha[i+1] {
+			if startTile.createRandom(98).Float64() < 0.5 && i%2 == 1 {
+				r.Platforms.Alpha[i] = true
+				r.Platforms.Beta[i] = true
+				r.Platforms.Gamma[i] = index != length
 			} else {
-				relevantTile.Platforms.Alpha[i+1] = true
-				relevantTile.Platforms.Beta[i+1] = true
-				relevantTile.Platforms.Gamma[i+1] = index != len(tiles)
+				r.Platforms.Alpha[i+1] = true
+				r.Platforms.Beta[i+1] = true
+				r.Platforms.Gamma[i+1] = index != length
 			}
 		}
 	}
-	if index == len(tiles)/2 {
-		relevantTile.StationName = g.getStationName(relevantTile)
+	if index == length/2 {
+		r.StationName = r.getStationName()
 	}
-	return relevantTile
 }
 
-func (g *Generator) stationWidth(start int) (int, []*rndTile) {
-	generator := g.createRndTile
-	tiles := make([]*rndTile, 0, 0)
-	i := start - 1
-	tile := generator(i)
-	for tile.station {
-		i = i - 1
-		tiles = append(tiles, tile)
-		tile = generator(i)
+func (r *rndTile) stationWidth() (int, *rndTile, int) {
+	generator := r.generator.createRndTile
+	length := 0
+	firstTile := r
+	for tile := generator(r.Hectometer - 1); tile.station; tile = generator(r.Hectometer - length - 1) {
+		firstTile = tile
+		length = length + 1
 	}
-	for a, b := 0, len(tiles)-1; a < b; a, b = a+1, b-1 {
-		tiles[a], tiles[b] = tiles[b], tiles[a]
+	index := length
+	length = length + 1
+	for counter := 1; generator(r.Hectometer + counter).station; counter++ {
+		length = length + 1
 	}
-	tiles = append(tiles, generator(start))
-	j := start + 1
-	tile = generator(j)
-	for tile.station {
-		j = j + 1
-		tiles = append(tiles, tile)
-		tile = generator(j)
-	}
-	return i + 1, tiles
+	return index, firstTile, length
 }
 
 func (r *rndTile) replaceTrackLayout(template [16]bool) {
@@ -89,10 +78,10 @@ func (r *rndTile) replaceTrackLayout(template [16]bool) {
 	}
 }
 
-func (g *Generator) getStationName(tile *rndTile) string {
-	if len(g.TownNames) == 0 {
-		g.TownNames = strings.Split(defaultTownNames, "\n")
+func (r *rndTile) getStationName() string {
+	if len(r.generator.TownNames) == 0 {
+		r.generator.TownNames = strings.Split(defaultTownNames, "\n")
 	}
-	index := tile.createRandom(99).Intn(len(g.TownNames))
-	return g.TownNames[index]
+	index := r.createRandom(99).Intn(len(r.generator.TownNames))
+	return r.generator.TownNames[index]
 }
