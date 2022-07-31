@@ -1,20 +1,9 @@
-package noise
+package generator
 
 import (
-	cryptoRand "crypto/rand"
-	"encoding/base64"
 	"hash/fnv"
 	"math/rand"
 )
-
-func RandomSeed() (string, error) {
-	b := make([]byte, 20)
-	_, err := cryptoRand.Read(b)
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(b), nil
-}
 
 type noise struct {
 	source [512]float64

@@ -1,4 +1,4 @@
-package noise
+package generator
 
 import (
 	"github.com/fafeitsch/go-infinite-rail-generator/domain"
@@ -55,10 +55,7 @@ func (r *rndTile) createRandom(shift int) *rand.Rand {
 }
 
 func (r *rndTile) fixNecessarySwitches(right *rndTile) {
-	rightConnectors := make(map[int]bool)
-	for i, connectors := range right.Tracks.Alpha {
-		rightConnectors[i] = len(connectors) > 0
-	}
+	rightConnectors := right.Tracks.AlphaTracks()
 	for i, track := range r.Tracks.Gamma {
 		underTest := track.FindConnector(domain.Omega, i)
 		var j int
