@@ -6,6 +6,10 @@
 $primary: #106812;
 
 :root {
+  --primary-color: #{$primary};
+}
+
+:root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 24px;
@@ -32,6 +36,10 @@ h1 {
 #toolbar {
   background-color: $primary;
   color: white;
+}
+
+.themed-border {
+  border: 1px solid $primary;
 }
 
 

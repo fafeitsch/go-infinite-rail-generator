@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link type="text/css" rel="stylesheet" href="src/styles/reset.css"><link>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8"/>
+    <link href="src/styles/reset.css" rel="stylesheet" type="text/css">
+    <link>
+    <link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Infinity Rail Generator</title>
+    <script src="src/components/SeedInput.ts" type="module"></script>
   </head>
   <body>
-    <div id="toolbar" role="toolbar" class="w-100 p-3 d-flex align-items-baseline gap-3">
+    <div class="w-100 p-3 d-flex align-items-baseline gap-3" id="toolbar" role="toolbar">
       <h1>Infinite Rail Generator</h1>
       <span id="version"></span>
     </div>
-    <div id="map" class="w-100" style="height: 255px"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <div class="w-100" id="map" style="height: 255px"></div>
+    <div class="d-flex justify-content-end p-3 mt-3">
+      <seed-input></seed-input>
+    </div>
+    <script src="/src/main.ts" type="module"></script>
   </body>
 </html>

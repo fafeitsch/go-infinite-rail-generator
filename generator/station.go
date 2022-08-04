@@ -20,15 +20,15 @@ func (r *rndTile) buildStation() {
 			if startTile.createRandom(98).Float64() < 0.5 && i%2 == 1 {
 				r.Platforms.Alpha[i] = true
 				r.Platforms.Beta[i] = true
-				r.Platforms.Gamma[i] = index != length
+				r.Platforms.Gamma[i] = index != length-1
 			} else {
 				r.Platforms.Alpha[i+1] = true
 				r.Platforms.Beta[i+1] = true
-				r.Platforms.Gamma[i+1] = index != length
+				r.Platforms.Gamma[i+1] = index != length-1
 			}
 		}
 	}
-	if index == length/2 {
+	if index+1 == length/2 {
 		r.StationName = r.getStationName()
 	}
 }

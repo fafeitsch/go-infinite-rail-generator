@@ -55,6 +55,9 @@ func (r *rndTile) createRandom(shift int) *rand.Rand {
 }
 
 func (r *rndTile) fixNecessarySwitches(right *rndTile) {
+	if right.station {
+		return
+	}
 	rightConnectors := right.Tracks.AlphaTracks()
 	for i, track := range r.Tracks.Gamma {
 		underTest := track.FindConnector(domain.Omega, i)
@@ -99,6 +102,9 @@ func (r *rndTile) fixNecessarySwitches(right *rndTile) {
 }
 
 func (r *rndTile) fixLeftSideBumpers(left *rndTile) {
+	if left.station {
+		return
+	}
 	leftConnectors := left.Tracks.BuildConnectorMap(domain.Gamma, domain.Omega)
 	for i, connectors := range r.Tracks.Alpha {
 		hasRightConnector := len(connectors) > 0

@@ -1,3 +1,5 @@
+import store from './store';
+
 export function fetchConfig(versionElement: HTMLElement) {
   const url = import.meta.env.VITE_BACKEND
   fetch(url + '/config')
@@ -5,5 +7,6 @@ export function fetchConfig(versionElement: HTMLElement) {
     .then(config => {
       const buildTime = config.buildTime ? ` (${config.buildTime})` : ''
       versionElement.innerHTML = `${config.version}${buildTime}`;
+      store.set.seed(config.defaultSeed)
     })
 }
