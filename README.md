@@ -42,7 +42,7 @@ You can either download the binaries from the Release tab (currently Linux only)
 ### Requirements
 
 * Go 1.16 or higher
-* npm 6.14.13 (only needed if you want to build the minimalistic Angular Frontend)
+* npm 6.14.13 (only needed if you want to build the minimalistic frontend)
 
 ### Only Go Application
 
@@ -60,13 +60,7 @@ If you want the minimalistic web frontend, too, just execute the command
 /bin/bash build.sh
 ```
 
-It compiles both the Go application and the frontend and puts everything in a directory `dist`. If you cannot execute
-bash, the manual steps are:
-
-1. Build the Angular app: `npm run-script build`
-2. Rename the `dist` directory into `html`.
-3. Put the [generated Go file](#only-go-application) into the same directory as the `html` directory.
-
+It compiles both the Go application and the frontend and puts everything in a directory `dist`.
 
 ## Render a single tile
 

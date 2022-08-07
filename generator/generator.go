@@ -55,7 +55,7 @@ func (r *rndTile) createRandom(shift int) *rand.Rand {
 }
 
 func (r *rndTile) fixNecessarySwitches(right *rndTile) {
-	if right.station {
+	if r.station {
 		return
 	}
 	rightConnectors := right.Tracks.AlphaTracks()
@@ -102,7 +102,7 @@ func (r *rndTile) fixNecessarySwitches(right *rndTile) {
 }
 
 func (r *rndTile) fixLeftSideBumpers(left *rndTile) {
-	if left.station {
+	if r.station {
 		return
 	}
 	leftConnectors := left.Tracks.BuildConnectorMap(domain.Gamma, domain.Omega)

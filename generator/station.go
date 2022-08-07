@@ -28,8 +28,9 @@ func (r *rndTile) buildStation() {
 			}
 		}
 	}
-	if index+1 == length/2 {
+	if index == length/2 {
 		r.StationName = r.getStationName()
+		println(index, r.StationName, length)
 	}
 }
 
