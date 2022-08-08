@@ -20,6 +20,17 @@ func (g *Generator) Seed() string {
 }
 
 func (g *Generator) Generate(tileNumber int) Tile {
+	plateauStart, tiles := g.buildSegment(tileNumber)
+	tileIndex := tileNumber - plateauStart
+	tile := tiles[tileIndex]
+	if tileIndex == len(tiles)-1 {
+		_, nextSegment := g.buildSegment(plateauStart + len(tiles) + 1)
+		fixNecessarySwitches(&tile, nextSegment[0])
+	}
+	return tile
+}
+
+func (g *Generator) buildSegment(tileNumber int) (int, []Tile) {
 	value := g.noise.interpolate(tileNumber)
 	values := make([]float64, 0)
 	plateauStart := tileNumber
@@ -38,10 +49,10 @@ func (g *Generator) Generate(tileNumber int) Tile {
 	}
 	factory := getSegmentFactory(values)
 	tiles := factory(plateauStart, values)
-	return *tiles[tileNumber-plateauStart]
+	return plateauStart, tiles
 }
 
-type segmentFactory func(start int, values []float64) []*Tile
+type segmentFactory func(start int, values []float64) []Tile
 
 func getSegmentFactory(values []float64) segmentFactory {
 	sum := 0.0
@@ -54,4 +65,42 @@ func getSegmentFactory(values []float64) segmentFactory {
 		return straightTrack
 	}
 	return straightTrack
+}
+
+func fixNecessarySwitches(left *Tile, right Tile) {
+	rightConnectors := right.Tracks.AlphaTracks()
+	for i, track := range left.Tracks.Gamma {
+		underTest := track.FindConnector(Omega, i)
+		var j int
+		if underTest != nil && !rightConnectors[i] {
+			if i <= len(left.Tracks.Gamma)/2 {
+				j = i + 1
+				for !rightConnectors[j] && j <= len(left.Tracks.Gamma)-1 {
+					j = j + 1
+				}
+			} else {
+				j = i - 1
+				for !rightConnectors[j] && j >= 0 {
+					j = j - 1
+				}
+			}
+			underTest.Slot = j
+		} else if underTest == nil && rightConnectors[i] {
+			if i <= len(left.Tracks.Gamma)/2 {
+				j = i + 1
+				for len(left.Tracks.Gamma[j]) == 0 {
+					j = j + 1
+				}
+			} else {
+				j = i - 1
+				for len(left.Tracks.Gamma[j]) == 0 {
+					j = j - 1
+				}
+			}
+			left.Tracks.Gamma[j] = append(left.Tracks.Gamma[j], &Connector{
+				Target: Omega,
+				Slot:   i,
+			})
+		}
+	}
 }

@@ -16,7 +16,7 @@ type Tile struct {
 // NewTile creates a new tile. The seed is mainly needed for informational purposes.
 // The number of tracks determines the number of tracks entering the tile from the left.
 // Panics if the number of tracks is less than 0 or greater than 16.
-func NewTile(seed string, tracks int) *Tile {
+func NewTile(seed string, tracks int) Tile {
 	if tracks > 16 || tracks < 0 {
 		panic(fmt.Sprintf("the number of tracks must be between 16 and 0 (inclusive), but was %d", tracks))
 	}
@@ -27,7 +27,7 @@ func NewTile(seed string, tracks int) *Tile {
 		rails.Beta[track] = []*Connector{{Target: Gamma, Slot: track}}
 		rails.Gamma[track] = []*Connector{{Target: Omega, Slot: track}}
 	}
-	return &Tile{Seed: seed, Tracks: rails}
+	return Tile{Seed: seed, Tracks: rails}
 }
 
 // Tracks contains the track information of a certain tile. The tracks enter the
