@@ -3,7 +3,7 @@ package renderer
 import (
 	_ "embed"
 	"fmt"
-	"github.com/fafeitsch/go-infinite-rail-generator/domain"
+	"github.com/fafeitsch/go-infinite-rail-generator/world"
 	"io"
 	"math"
 	"text/template"
@@ -19,7 +19,7 @@ var templateFunctions = template.FuncMap{
 	"half": func(a int) int {
 		return a / 2
 	},
-	"track": func(size int, tracks domain.Tracks) []string {
+	"track": func(size int, tracks world.Tracks) []string {
 		beta := size / 3
 		gamma := 2 * size / 3
 		result := make([]string, 0)
@@ -32,7 +32,7 @@ var templateFunctions = template.FuncMap{
 	"platform": computePlatforms,
 }
 
-func computePaths(size float64, column [16]domain.Connectors, x float64, result []string) []string {
+func computePaths(size float64, column [16]world.Connectors, x float64, result []string) []string {
 	offset := size / 16 / 2
 	next := int(math.Ceil(x + size/3/2))
 	for i, connectors := range column {
@@ -47,12 +47,12 @@ func computePaths(size float64, column [16]domain.Connectors, x float64, result 
 	return result
 }
 
-func computeBumpers(size float64, tracks domain.Tracks, result []string) []string {
+func computeBumpers(size float64, tracks world.Tracks, result []string) []string {
 	gamma := 2 * size / 3
 	offset := size / 16 / 2
 	bumperWidth := int(size / 16 / 2)
 	beta := size/3 - float64(bumperWidth)
-	connectorsToGamma := tracks.BuildConnectorMap(domain.Beta, domain.Gamma)
+	connectorsToGamma := tracks.BuildConnectorMap(world.Beta, world.Gamma)
 	for i, connectors := range tracks.Gamma {
 		if len(connectors) == 0 && connectorsToGamma[i] {
 			y := int(math.Floor(float64(i)*size/16 + offset))
@@ -60,7 +60,7 @@ func computeBumpers(size float64, tracks domain.Tracks, result []string) []strin
 			result = append(result, path)
 		}
 	}
-	connectorsToBeta := tracks.BuildConnectorMap(domain.Alpha, domain.Beta)
+	connectorsToBeta := tracks.BuildConnectorMap(world.Alpha, world.Beta)
 	for i, connectors := range tracks.Beta {
 		if !connectorsToBeta[i] && len(connectors) > 0 {
 			y := int(math.Floor(float64(i)*size/16 + offset))
@@ -71,7 +71,7 @@ func computeBumpers(size float64, tracks domain.Tracks, result []string) []strin
 	return result
 }
 
-func computePlatforms(size int, platforms domain.Platforms) []string {
+func computePlatforms(size int, platforms world.Platforms) []string {
 	result := make([]string, 0, 0)
 	offset := size / 16 / 2
 	for i, _ := range platforms.Alpha {
@@ -93,7 +93,7 @@ func computePlatforms(size int, platforms domain.Platforms) []string {
 var svgTemplate = template.Must(template.New("svgTemplate").Funcs(templateFunctions).Parse(templateString))
 
 type svgTile struct {
-	*domain.Tile
+	*world.Tile
 	Size int
 }
 
@@ -106,6 +106,6 @@ func New(writer io.Writer, size int) Renderer {
 	return Renderer{writer: writer, size: size}
 }
 
-func (r *Renderer) Render(tile *domain.Tile) error {
-	return svgTemplate.Execute(r.writer, svgTile{Size: r.size, Tile: tile})
+func (r *Renderer) Render(tile world.Tile) error {
+	return svgTemplate.Execute(r.writer, svgTile{Size: r.size, Tile: &tile})
 }

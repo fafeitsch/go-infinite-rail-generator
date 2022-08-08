@@ -3,8 +3,8 @@ package web
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/fafeitsch/go-infinite-rail-generator/generator"
 	"github.com/fafeitsch/go-infinite-rail-generator/renderer"
+	"github.com/fafeitsch/go-infinite-rail-generator/world"
 	"net/http"
 	"path"
 	"strconv"
@@ -20,7 +20,7 @@ type ApiOptions struct {
 }
 
 func ApiHandler(options ApiOptions) http.HandlerFunc {
-	defaultNoise := generator.New(options.Seed)
+	defaultNoise := world.NewGenerator(options.Seed)
 	return func(writer http.ResponseWriter, r *http.Request) {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		var head string
@@ -49,7 +49,7 @@ func shiftPath(p string) (head, tail string) {
 	return p[1:i], p[i:]
 }
 
-func serveTile(defaultNoise *generator.Generator, shift int, writer http.ResponseWriter, r *http.Request) {
+func serveTile(defaultGenerator *world.Generator, shift int, writer http.ResponseWriter, r *http.Request) {
 	y := r.URL.Query().Get("vertical")
 	if y != "131072" {
 		return
@@ -60,12 +60,12 @@ func serveTile(defaultNoise *generator.Generator, shift int, writer http.Respons
 		http.Error(writer, fmt.Sprintf("The tile query parameter \"%s\" is not a valid number.", r.URL.Query().Get("tile")), http.StatusBadRequest)
 		return
 	}
-	var aNoise *generator.Generator
-	if seedString == "" || seedString == defaultNoise.Seed {
-		aNoise = defaultNoise
+	var aNoise *world.Generator
+	if seedString == "" || seedString == defaultGenerator.Seed() {
+		aNoise = defaultGenerator
 	} else {
-		aNoise = generator.New(seedString)
-		aNoise.TownNames = defaultNoise.TownNames
+		aNoise = world.NewGenerator(seedString)
+		// aNoise.TownNames = defaultGenerator.TownNames
 	}
 	tile := aNoise.Generate(hectometer + shift)
 	writer.Header().Set("Content-Type", "image/svg+xml")

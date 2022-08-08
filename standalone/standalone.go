@@ -2,8 +2,8 @@ package standalone
 
 import (
 	"fmt"
-	"github.com/fafeitsch/go-infinite-rail-generator/generator"
 	"github.com/fafeitsch/go-infinite-rail-generator/renderer"
+	"github.com/fafeitsch/go-infinite-rail-generator/world"
 	"os"
 )
 
@@ -15,8 +15,8 @@ type RenderOptions struct {
 }
 
 func RenderSingleTile(options RenderOptions) error {
-	gen := generator.New(options.Seed)
-	gen.TownNames = options.TownNames
+	gen := world.NewGenerator(options.Seed)
+	// gen.TownNames = options.TownNames
 	size := options.Size
 	if size == 0 {
 		size = 200
