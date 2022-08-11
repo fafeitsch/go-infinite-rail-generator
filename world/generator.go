@@ -61,8 +61,8 @@ func getSegmentFactory(values []float64) segmentFactory {
 	}
 	random := rand.New(rand.NewSource(int64(sum)))
 	die := random.Float64()
-	if die > 0 {
-		return straightTrack
+	if len(values)%2 == 0 && die < 0.5 {
+		return station
 	}
 	return straightTrack
 }
