@@ -2,6 +2,7 @@ package world
 
 import (
 	"fmt"
+	"strconv"
 )
 
 // Tile contains all information that is required to build one tile of the rail network.
@@ -108,6 +109,24 @@ func (c Connectors) FindConnector(target Column, slot int) *Connector {
 }
 
 type Column int
+
+func (c Column) Next() Column {
+	switch c {
+	case Alpha:
+		return Beta
+	case Beta:
+		return Gamma
+	case Gamma:
+		return Omega
+	case Omega:
+		return Alpha
+	}
+	panic("unknown column " + strconv.Itoa(int(c)))
+}
+
+func (c Column) Previous() Column {
+	return c.Next().Next().Next()
+}
 
 const (
 	Alpha Column = iota

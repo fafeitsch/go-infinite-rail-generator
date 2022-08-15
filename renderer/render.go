@@ -39,8 +39,8 @@ func computePaths(size float64, column [16]world.Connectors, x float64, result [
 		y := int(math.Floor(float64(i)*size/16 + offset))
 		for _, connector := range connectors {
 			var path string
-			target := int(math.Floor(float64(connector.Slot)*size/16 + offset))
-			path = fmt.Sprintf("M %d,%d C%d,%d %d,%d, %d,%d", int(x), y, next, y, next, target, int(x+(math.Ceil(size/3))), target)
+			yTarget := int(math.Floor(float64(connector.Slot)*size/16 + offset))
+			path = fmt.Sprintf("M %d,%d C%d,%d %d,%d, %d,%d", int(x), y, next, y, next, yTarget, int(x+(math.Ceil(size*1/3))), yTarget)
 			result = append(result, path)
 		}
 	}
