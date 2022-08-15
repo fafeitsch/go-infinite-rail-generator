@@ -1,13 +1,24 @@
 {{- /*gotype: github.com/fafeitsch/go-infinite-rail-generator/world.Tile*/ -}}
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="{{.Size}}" height="{{.Size}}">
+    <style type="text/css">
+        .track {
+        fill: none;
+        stroke: black;
+        stroke-width: 2px;
+        }
+    </style>
     <rect width="100%" height="100%" fill="white"/>
     {{range $key,$val := track .Size .Tracks}}
-    <path fill="none" stroke="black" stroke-width="2px" d="{{$val}}"/>{{end}}
+    <path class="track" {{$val}}/>{{end}}
 
     {{range $key, $val := platform .Size .Platforms}}
     <path fill="grey" stroke="none" d="{{$val}}/"/>{{end}}
 
+    {{range $key, $val := trackLabel .Size .Tracks}}
+    <text text-anchor="middle" font-family="mono,sans-serif" dominant-baseline="middle" {{$val}}{{end}}
+
     {{if (ne .StationName "")}}
-    <text x="{{half .Size}}" y="20" text-anchor="middle" font-family="mono,sans-serif" font-size="0.8em">{{.StationName}}</text>
+    <text x="{{half .Size}}" y="20" text-anchor="middle" font-family="mono,sans-serif"
+          font-size="0.8em">{{.StationName}}</text>
     {{end}}
 </svg>

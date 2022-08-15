@@ -26,21 +26,32 @@ var templateFunctions = template.FuncMap{
 		result = computePaths(float64(size), tracks.Alpha, 0, result)
 		result = computePaths(float64(size), tracks.Beta, float64(beta), result)
 		result = computePaths(float64(size), tracks.Gamma, float64(gamma), result)
-		result = computeBumpers(float64(size), tracks, result)
+		// not needed for now – maybe bumbers will be set explicitly
+		// result = computeBumpers(float64(size), tracks, result)
 		return result
 	},
-	"platform": computePlatforms,
+	"trackLabel": computeTrackLabels,
+	"platform":   computePlatforms,
 }
 
 func computePaths(size float64, column [16]world.Connectors, x float64, result []string) []string {
 	offset := size / 16 / 2
-	next := int(math.Ceil(x + size/3/2))
 	for i, connectors := range column {
 		y := int(math.Floor(float64(i)*size/16 + offset))
 		for _, connector := range connectors {
 			var path string
-			yTarget := int(math.Floor(float64(connector.Slot)*size/16 + offset))
-			path = fmt.Sprintf("M %d,%d C%d,%d %d,%d, %d,%d", int(x), y, next, y, next, yTarget, int(x+(math.Ceil(size*1/3))), yTarget)
+			xDash := size / 3
+			if connector.Target == world.Gamma {
+				xDash = 2 * size / 3
+			} else if connector.Target == world.Omega {
+				xDash = size
+			}
+			next := int(x) + int(math.Ceil((xDash-x)/2))
+			yTarget := int(math.Floor(float64(connector.Track)*size/16 + offset))
+			path = fmt.Sprintf("d=\"M %d,%d C%d,%d %d,%d, %d,%d\"", int(x), y, next, y, next, yTarget, int(x+(math.Ceil(xDash-x))), yTarget)
+			if connector.Junction {
+				path = fmt.Sprintf("%s stroke-dasharray=\"2\"", path)
+			}
 			result = append(result, path)
 		}
 	}
@@ -56,7 +67,7 @@ func computeBumpers(size float64, tracks world.Tracks, result []string) []string
 	for i, connectors := range tracks.Gamma {
 		if len(connectors) == 0 && connectorsToGamma[i] {
 			y := int(math.Floor(float64(i)*size/16 + offset))
-			path := fmt.Sprintf("M %d %d h %d v %d h %d Z", int(gamma), y-bumperWidth/2, bumperWidth, bumperWidth, -bumperWidth)
+			path := fmt.Sprintf("d=\"M %d %d h %d v %d h %d Z\"", int(gamma), y-bumperWidth/2, bumperWidth, bumperWidth, -bumperWidth)
 			result = append(result, path)
 		}
 	}
@@ -64,7 +75,7 @@ func computeBumpers(size float64, tracks world.Tracks, result []string) []string
 	for i, connectors := range tracks.Beta {
 		if !connectorsToBeta[i] && len(connectors) > 0 {
 			y := int(math.Floor(float64(i)*size/16 + offset))
-			path := fmt.Sprintf("M %d %d h %d v %d h %d Z", int(beta), y-bumperWidth/2, bumperWidth, bumperWidth, -bumperWidth)
+			path := fmt.Sprintf("d=\"M %d %d h %d v %d h %d Z\"", int(beta), y-bumperWidth/2, bumperWidth, bumperWidth, -bumperWidth)
 			result = append(result, path)
 		}
 	}
@@ -85,6 +96,32 @@ func computePlatforms(size int, platforms world.Platforms) []string {
 		}
 		if platforms.Gamma[i] {
 			result = append(result, fmt.Sprintf("M %d %d H %d v %d h -%d Z", 2*size/3, y, size, height, int(math.Ceil(2*float64(size)/3))))
+		}
+	}
+	return result
+}
+
+func computeTrackLabels(size int, tracks world.Tracks) []string {
+	result := make([]string, 0, 0)
+	for i, _ := range tracks.Alpha {
+		y := math.Floor(float64(i) * float64(size) / 16)
+		for _, connector := range tracks.Alpha[i] {
+			if connector.Label != "" {
+				element := fmt.Sprintf("x=\"%f\" y=\"%f\" font-size=\"0.5em\">%s</text>", float64(size)*1/3/2, y, connector.Label)
+				result = append(result, element)
+			}
+		}
+		for _, connector := range tracks.Beta[i] {
+			if connector.Label != "" {
+				element := fmt.Sprintf("x=\"%f\" y=\"%f\" font-size=\"0.5em\">%s</text>", float64(size)*1.5/3, y, connector.Label)
+				result = append(result, element)
+			}
+		}
+		for _, connector := range tracks.Gamma[i] {
+			if connector.Label != "" {
+				element := fmt.Sprintf("x=\"%f\" y=\"%f\" font-size=\"0.5em\">%s</text>", float64(size)*2.5/3, y, connector.Label)
+				result = append(result, element)
+			}
 		}
 	}
 	return result

@@ -24,9 +24,9 @@ func NewTile(seed string, tracks int) Tile {
 	first := 8 - tracks/2
 	rails := Tracks{}
 	for track := first; track < first+tracks; track++ {
-		rails.Alpha[track] = []*Connector{{Target: Beta, Slot: track}}
-		rails.Beta[track] = []*Connector{{Target: Gamma, Slot: track}}
-		rails.Gamma[track] = []*Connector{{Target: Omega, Slot: track}}
+		rails.Alpha[track] = []*Connector{{Target: Beta, Track: track}}
+		rails.Beta[track] = []*Connector{{Target: Gamma, Track: track}}
+		rails.Gamma[track] = []*Connector{{Target: Omega, Track: track}}
 	}
 	return Tile{Seed: seed, Tracks: rails}
 }
@@ -86,8 +86,10 @@ type Platforms struct {
 
 // Connector specifies a target connection of a track, i.e. go to column gamma, slot 5.
 type Connector struct {
-	Target Column
-	Slot   int
+	Target   Column
+	Track    int
+	Junction bool
+	Label    string
 }
 
 type Connectors []*Connector
@@ -101,7 +103,7 @@ func (c Connectors) ConnectsTo(target Column, slot int) bool {
 // Returns nil if no such connector exists.
 func (c Connectors) FindConnector(target Column, slot int) *Connector {
 	for _, element := range c {
-		if element.Target == target && element.Slot == slot {
+		if element.Target == target && element.Track == slot {
 			return element
 		}
 	}
@@ -119,7 +121,7 @@ func (c Column) Next() Column {
 	case Gamma:
 		return Omega
 	case Omega:
-		return Alpha
+		return Beta
 	}
 	panic("unknown column " + strconv.Itoa(int(c)))
 }

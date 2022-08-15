@@ -1,15 +1,14 @@
 package world
 
 import (
-	_ "embed"
 	"math/rand"
-	"strings"
 )
 
-//go:embed default_town_names.txt
-var townNames string
+type stationBuilder struct {
+	nameProvider nameProvider
+}
 
-func station(start int, values []float64) []Tile {
+func (s *stationBuilder) build(start int, values []float64) []Tile {
 	random := rand.New(rand.NewSource(int64(start)))
 	die := random.Float64()
 	tracks := 2
@@ -40,12 +39,6 @@ func station(start int, values []float64) []Tile {
 	for track := first; track < first+tracks; track++ {
 		platform.Gamma[track] = false
 	}
-	result[len(result)/2].StationName = getStationName(random)
+	result[len(result)/2].StationName = s.nameProvider()
 	return result
-}
-
-func getStationName(random *rand.Rand) string {
-	list := strings.Split(townNames, "\n")
-	index := random.Intn(len(list))
-	return list[index]
 }

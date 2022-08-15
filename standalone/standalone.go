@@ -16,7 +16,7 @@ type RenderOptions struct {
 
 func RenderSingleTile(options RenderOptions) error {
 	gen := world.NewGenerator(options.Seed)
-	// gen.TownNames = options.TownNames
+	gen.TownNames = options.TownNames
 	size := options.Size
 	if size == 0 {
 		size = 200

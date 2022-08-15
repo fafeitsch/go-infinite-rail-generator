@@ -20,7 +20,8 @@ type ApiOptions struct {
 }
 
 func ApiHandler(options ApiOptions) http.HandlerFunc {
-	defaultNoise := world.NewGenerator(options.Seed)
+	generator := world.NewGenerator(options.Seed)
+	generator.TownNames = options.TownNames
 	return func(writer http.ResponseWriter, r *http.Request) {
 		writer.Header().Set("Access-Control-Allow-Origin", "*")
 		var head string
@@ -28,7 +29,7 @@ func ApiHandler(options ApiOptions) http.HandlerFunc {
 		head, r.URL.Path = shiftPath(r.URL.Path)
 		switch head {
 		case "tiles":
-			serveTile(defaultNoise, options.Shift, writer, r)
+			serveTile(generator, options.Shift, writer, r)
 			break
 		case "config":
 			serveConfig(options, writer, r)
@@ -65,7 +66,7 @@ func serveTile(defaultGenerator *world.Generator, shift int, writer http.Respons
 		aNoise = defaultGenerator
 	} else {
 		aNoise = world.NewGenerator(seedString)
-		// aNoise.TownNames = defaultGenerator.TownNames
+		aNoise.TownNames = defaultGenerator.TownNames
 	}
 	tile := aNoise.Generate(hectometer + shift)
 	writer.Header().Set("Content-Type", "image/svg+xml")

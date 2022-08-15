@@ -25,31 +25,31 @@ func TestNewTile(t *testing.T) {
 			{
 				{
 					Target: Beta,
-					Slot:   6,
+					Track:  6,
 				},
 			},
 			{
 				{
 					Target: Beta,
-					Slot:   7,
+					Track:  7,
 				},
 			},
 			{
 				{
 					Target: Beta,
-					Slot:   8,
+					Track:  8,
 				},
 			},
 			{
 				{
 					Target: Beta,
-					Slot:   9,
+					Track:  9,
 				},
 			},
 			{
 				{
 					Target: Beta,
-					Slot:   10,
+					Track:  10,
 				},
 			},
 			nil,
@@ -68,31 +68,31 @@ func TestNewTile(t *testing.T) {
 			{
 				{
 					Target: Gamma,
-					Slot:   6,
+					Track:  6,
 				},
 			},
 			{
 				{
 					Target: Gamma,
-					Slot:   7,
+					Track:  7,
 				},
 			},
 			{
 				{
 					Target: Gamma,
-					Slot:   8,
+					Track:  8,
 				},
 			},
 			{
 				{
 					Target: Gamma,
-					Slot:   9,
+					Track:  9,
 				},
 			},
 			{
 				{
 					Target: Gamma,
-					Slot:   10,
+					Track:  10,
 				},
 			},
 			nil,
@@ -111,31 +111,31 @@ func TestNewTile(t *testing.T) {
 			{
 				{
 					Target: Omega,
-					Slot:   6,
+					Track:  6,
 				},
 			},
 			{
 				{
 					Target: Omega,
-					Slot:   7,
+					Track:  7,
 				},
 			},
 			{
 				{
 					Target: Omega,
-					Slot:   8,
+					Track:  8,
 				},
 			},
 			{
 				{
 					Target: Omega,
-					Slot:   9,
+					Track:  9,
 				},
 			},
 			{
 				{
 					Target: Omega,
-					Slot:   10,
+					Track:  10,
 				},
 			},
 			nil,
@@ -184,10 +184,13 @@ func TestTracks(t *testing.T) {
 		tracks := Tracks{
 			Alpha: [16]Connectors{
 				nil,
-				[]*Connector{{Target: Gamma, Slot: 3}},
-				[]*Connector{{Target: Gamma, Slot: 2}, {Target: Beta, Slot: 1}},
-				[]*Connector{{Target: Beta, Slot: 1}},
-				[]*Connector{{Target: Gamma, Slot: 2}},
+				[]*Connector{{Target: Gamma, Track: 3}},
+				[]*Connector{
+					{Target: Gamma, Track: 2},
+					{Target: Beta, Track: 1},
+				},
+				[]*Connector{{Target: Beta, Track: 1}},
+				[]*Connector{{Target: Gamma, Track: 2}},
 			},
 		}
 		result := tracks.BuildConnectorMap(Alpha, Gamma)
@@ -199,8 +202,8 @@ func TestConnectors(t *testing.T) {
 	var connectors Connectors = []*Connector{
 		{
 			Target: Beta,
-			Slot:   2,
-		}, {Target: Alpha, Slot: 1},
+			Track:  2,
+		}, {Target: Alpha, Track: 1},
 	}
 	t.Run("connectsTo", func(t *testing.T) {
 		assert.True(t, connectors.ConnectsTo(Alpha, 1))
@@ -209,7 +212,7 @@ func TestConnectors(t *testing.T) {
 	t.Run("find Connector", func(t *testing.T) {
 		assert.Equal(t, &Connector{
 			Target: Alpha,
-			Slot:   1,
+			Track:  1,
 		}, connectors.FindConnector(Alpha, 1))
 		assert.Nil(t, connectors.FindConnector(Beta, 4))
 	})

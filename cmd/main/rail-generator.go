@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"crypto/rand"
+	_ "embed"
 	"encoding/base64"
 	"fmt"
 	"github.com/fafeitsch/go-infinite-rail-generator/standalone"
@@ -11,7 +12,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
+
+//go:embed default_town_names.txt
+var townNames string
 
 var (
 	BuildVersion = "Development Snapshot"
@@ -93,8 +98,9 @@ func main() {
 }
 
 func readTownNames(townNameFile string) ([]string, error) {
-	result := make([]string, 0, 0)
+	result := strings.Split(townNames, "\n")
 	if townNameFile != "" {
+		result = make([]string, 0, 0)
 		file, err := os.Open(townNameFile)
 		if err != nil {
 			return nil, fmt.Errorf("could not open town name file for reading: %v", err)

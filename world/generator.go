@@ -7,12 +7,17 @@ import (
 )
 
 type Generator struct {
-	seed  string
-	noise *noise
+	seed      string
+	noise     *noise
+	TownNames []string
 }
 
 func NewGenerator(seed string) *Generator {
-	return &Generator{noise: createNoise(seed), seed: seed}
+	return &Generator{
+		noise:     createNoise(seed),
+		seed:      seed,
+		TownNames: make([]string, 0),
+	}
 }
 
 func (g *Generator) Seed() string {
@@ -47,24 +52,35 @@ func (g *Generator) buildSegment(tileNumber int) (int, []Tile) {
 		values = append(values, current)
 		plateauEnd = plateauEnd + 1
 	}
-	factory := getSegmentFactory(values)
-	tiles := factory(plateauStart, values)
+	factory := g.getSegmentFactory(values)
+	tiles := factory.build(plateauStart, values)
 	return plateauStart, tiles
 }
 
-type segmentFactory func(start int, values []float64) []Tile
+type segmentFactory interface {
+	build(int, []float64) []Tile
+}
 
-func getSegmentFactory(values []float64) segmentFactory {
+type nameProvider func() string
+
+func (g *Generator) getSegmentFactory(values []float64) segmentFactory {
 	sum := 0.0
 	for _, value := range values {
 		sum = sum + (value * 10000)
 	}
 	random := rand.New(rand.NewSource(int64(sum)))
-	die := random.Float64()
-	if len(values)%2 == 0 && die < 0.5 {
-		return station
+	// die := random.Float64()
+	nameProvider := func() string {
+		if len(g.TownNames) == 0 {
+			return ""
+		}
+		index := random.Intn(len(g.TownNames))
+		return g.TownNames[index]
 	}
-	return straightTrack
+	if len(values)%2 == 0 && len(values) <= 10 {
+		return &stationBuilder{nameProvider: nameProvider}
+	}
+	return &straightBuilder{nameProvider: nameProvider}
 }
 
 func fixNecessarySwitches(left *Tile, right Tile) {
@@ -84,7 +100,7 @@ func fixNecessarySwitches(left *Tile, right Tile) {
 					j = j - 1
 				}
 			}
-			underTest.Slot = j
+			underTest.Track = j
 		} else if underTest == nil && rightConnectors[i] {
 			if i <= len(left.Tracks.Gamma)/2 {
 				j = i + 1
@@ -99,7 +115,7 @@ func fixNecessarySwitches(left *Tile, right Tile) {
 			}
 			left.Tracks.Gamma[j] = append(left.Tracks.Gamma[j], &Connector{
 				Target: Omega,
-				Slot:   i,
+				Track:  i,
 			})
 		}
 	}
