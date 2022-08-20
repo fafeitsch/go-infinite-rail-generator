@@ -27,17 +27,22 @@ func (s *stationBuilder) build(start int, values []float64) []Tile {
 	first := 8 - tracks/2 + random.Intn(2)
 	for index := range values {
 		tile := NewTile("", tracks)
-		platform := &tile.Platforms
 		for track := first; track < first+tracks; track++ {
-			platform.Alpha[track] = true
-			platform.Beta[track] = true
-			platform.Gamma[track] = true
+			tile.Platforms = append(tile.Platforms, Platform{
+				Column: Alpha,
+				Track:  track,
+			}, Platform{
+				Column: Beta,
+				Track:  track,
+			})
+			if index != len(values)-1 {
+				tile.Platforms = append(tile.Platforms, Platform{
+					Column: Gamma,
+					Track:  track,
+				})
+			}
 		}
 		result[index] = tile
-	}
-	platform := &result[len(result)-1].Platforms
-	for track := first; track < first+tracks; track++ {
-		platform.Gamma[track] = false
 	}
 	result[len(result)/2].StationName = s.nameProvider()
 	return result

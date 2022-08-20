@@ -24,32 +24,32 @@ func TestNewTile(t *testing.T) {
 			nil,
 			{
 				{
-					Target: Beta,
-					Track:  6,
+					TargetColumn: Beta,
+					TargetTrack:  6,
 				},
 			},
 			{
 				{
-					Target: Beta,
-					Track:  7,
+					TargetColumn: Beta,
+					TargetTrack:  7,
 				},
 			},
 			{
 				{
-					Target: Beta,
-					Track:  8,
+					TargetColumn: Beta,
+					TargetTrack:  8,
 				},
 			},
 			{
 				{
-					Target: Beta,
-					Track:  9,
+					TargetColumn: Beta,
+					TargetTrack:  9,
 				},
 			},
 			{
 				{
-					Target: Beta,
-					Track:  10,
+					TargetColumn: Beta,
+					TargetTrack:  10,
 				},
 			},
 			nil,
@@ -67,32 +67,32 @@ func TestNewTile(t *testing.T) {
 			nil,
 			{
 				{
-					Target: Gamma,
-					Track:  6,
+					TargetColumn: Gamma,
+					TargetTrack:  6,
 				},
 			},
 			{
 				{
-					Target: Gamma,
-					Track:  7,
+					TargetColumn: Gamma,
+					TargetTrack:  7,
 				},
 			},
 			{
 				{
-					Target: Gamma,
-					Track:  8,
+					TargetColumn: Gamma,
+					TargetTrack:  8,
 				},
 			},
 			{
 				{
-					Target: Gamma,
-					Track:  9,
+					TargetColumn: Gamma,
+					TargetTrack:  9,
 				},
 			},
 			{
 				{
-					Target: Gamma,
-					Track:  10,
+					TargetColumn: Gamma,
+					TargetTrack:  10,
 				},
 			},
 			nil,
@@ -110,32 +110,32 @@ func TestNewTile(t *testing.T) {
 			nil,
 			{
 				{
-					Target: Omega,
-					Track:  6,
+					TargetColumn: Omega,
+					TargetTrack:  6,
 				},
 			},
 			{
 				{
-					Target: Omega,
-					Track:  7,
+					TargetColumn: Omega,
+					TargetTrack:  7,
 				},
 			},
 			{
 				{
-					Target: Omega,
-					Track:  8,
+					TargetColumn: Omega,
+					TargetTrack:  8,
 				},
 			},
 			{
 				{
-					Target: Omega,
-					Track:  9,
+					TargetColumn: Omega,
+					TargetTrack:  9,
 				},
 			},
 			{
 				{
-					Target: Omega,
-					Track:  10,
+					TargetColumn: Omega,
+					TargetTrack:  10,
 				},
 			},
 			nil,
@@ -147,73 +147,31 @@ func TestNewTile(t *testing.T) {
 	})
 }
 
-func TestTracks(t *testing.T) {
-	t.Run("get column", func(t *testing.T) {
-		tracks := Tracks{
-			Alpha: [16]Connectors{
-				[]*Connector{},
-			},
-			Beta:  [16]Connectors{nil, []*Connector{}},
-			Gamma: [16]Connectors{nil, nil, []*Connector{}},
-		}
-		assert.Equal(t, [16]Connectors{[]*Connector{}}, tracks.Get(Alpha))
-		assert.Equal(t, [16]Connectors{nil, []*Connector{}}, tracks.Get(Beta))
-		assert.Equal(t, [16]Connectors{
-			nil,
-			nil,
-			[]*Connector{},
-		}, tracks.Get(Gamma))
+func TestTile_Mirror(t *testing.T) {
+	tile := NewTile("", 2)
+	tile.Tracks.Beta[8] = append(tile.Tracks.Beta[8], &Connector{
+		TargetColumn: Omega,
+		TargetTrack:  9,
 	})
-	t.Run("get should panic", func(t *testing.T) {
-		shouldPanic := func() { (&Tracks{}).Get(4) }
-		assert.PanicsWithValue(t, "no connectors from column 4 available", shouldPanic)
+	tile.Tracks.Gamma[7] = append(tile.Tracks.Gamma[7], &Connector{
+		TargetColumn: Omega,
+		TargetTrack:  8,
 	})
-	t.Run("alpha tracks", func(t *testing.T) {
-		tracks := Tracks{
-			Alpha: [16]Connectors{
-				[]*Connector{},
-				[]*Connector{{}},
-			},
-		}
-		assert.Equal(t, [16]bool{
-			false,
-			true,
-		}, tracks.AlphaTracks())
-	})
-	t.Run("build connector map", func(t *testing.T) {
-		tracks := Tracks{
-			Alpha: [16]Connectors{
-				nil,
-				[]*Connector{{Target: Gamma, Track: 3}},
-				[]*Connector{
-					{Target: Gamma, Track: 2},
-					{Target: Beta, Track: 1},
-				},
-				[]*Connector{{Target: Beta, Track: 1}},
-				[]*Connector{{Target: Gamma, Track: 2}},
-			},
-		}
-		result := tracks.BuildConnectorMap(Alpha, Gamma)
-		assert.Equal(t, [16]bool{false, false, true, true, false}, result)
-	})
-}
-
-func TestConnectors(t *testing.T) {
-	var connectors Connectors = []*Connector{
+	tile.Mirror()
+	assert.Equal(t, Connectors{
 		{
-			Target: Beta,
-			Track:  2,
-		}, {Target: Alpha, Track: 1},
-	}
-	t.Run("connectsTo", func(t *testing.T) {
-		assert.True(t, connectors.ConnectsTo(Alpha, 1))
-		assert.False(t, connectors.ConnectsTo(Alpha, 2))
-	})
-	t.Run("find Connector", func(t *testing.T) {
-		assert.Equal(t, &Connector{
-			Target: Alpha,
-			Track:  1,
-		}, connectors.FindConnector(Alpha, 1))
-		assert.Nil(t, connectors.FindConnector(Beta, 4))
-	})
+			TargetTrack:  7,
+			TargetColumn: Beta,
+		},
+	}, tile.Tracks.Alpha[7])
+	assert.Equal(t, Connectors{
+		{TargetTrack: 7, TargetColumn: Beta},
+		{TargetTrack: 8, TargetColumn: Beta},
+	}, tile.Tracks.Alpha[8])
+	// assert.Equal(t, []*Connector{
+	// 	{
+	// 		TargetTrack:  8,
+	// 		TargetColumn: Gamma,
+	// 	},
+	// }, tile.Tracks.Alpha[9])
 }

@@ -15,7 +15,7 @@
     <path fill="grey" stroke="none" d="{{$val}}/"/>{{end}}
 
     {{range $key, $val := trackLabel .Size .Tracks}}
-    <text text-anchor="middle" font-family="mono,sans-serif" dominant-baseline="middle" {{$val}}{{end}}
+    <text font-family="mono,sans-serif" dominant-baseline="middle" {{$val}}{{end}}
 
     {{if (ne .StationName "")}}
     <text x="{{half .Size}}" y="20" text-anchor="middle" font-family="mono,sans-serif"

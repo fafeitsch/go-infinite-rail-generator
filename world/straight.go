@@ -31,43 +31,42 @@ func (s *straightBuilder) build(start int, values []float64) []Tile {
 func (s *straightBuilder) buildJunction(random *rand.Rand, tracks int, tiles []Tile) []Tile {
 	verticalDirection := random.Intn(2)
 	tileIndex := len(tiles) / 2
-	connectors := &tiles[tileIndex].Tracks.Alpha
+	alphaTracks := tiles[tileIndex].Tracks.AlphaTracks()
 	index := 0
 	if verticalDirection == 0 {
-		index = len(connectors) - 1
+		index = len(alphaTracks) - 1
 		verticalDirection = -1
 	}
-	for ; len(connectors[index]) == 0; index = index + verticalDirection {
+	for ; !alphaTracks[index]; index = index + verticalDirection {
 	}
 	if tracks == 2 {
 		return s.buildDirectJunction(index, verticalDirection, tiles)
 	}
-	target := Beta
+	tile := &tiles[tileIndex]
+	sources := [3]Column{Alpha, Beta, Gamma}
+	targets := [3]Column{Beta, Gamma, Omega}
 	for track := 0; track < tracks; track++ {
-		connectors[index] = append(connectors[index], &Connector{
-			Target: target,
-			Track:  index + verticalDirection,
+		tile.Tracks = append(tile.Tracks, Connector{
+			SourceColumn: sources[track%len(sources)],
+			SourceTrack:  index,
+			TargetColumn: targets[track%len(targets)],
+			TargetTrack:  index + verticalDirection,
 		})
-		target = target.Next()
-		if track == 0 {
-			connectors = &tiles[tileIndex].Tracks.Beta
-		} else if track == 1 {
-			connectors = &tiles[tileIndex].Tracks.Gamma
-		} else if track == 2 {
-			connectors = &tiles[tileIndex+1].Tracks.Alpha
-		} else if track == 3 {
-			connectors = &tiles[tileIndex+1].Tracks.Beta
+		if track == 2 {
+			tile = &tiles[tileIndex+1]
 		}
 		index = index + verticalDirection
 		if track == tracks-2 {
 			verticalDirection = 2 * verticalDirection
 		}
 	}
-	connectors[index] = append(connectors[index], &Connector{
-		Target:   target,
-		Track:    index,
-		Junction: true,
-		Label:    "to " + s.nameProvider(),
+	tile.Tracks = append(tile.Tracks, Connector{
+		SourceTrack:  index,
+		SourceColumn: sources[tracks%len(sources)],
+		TargetColumn: targets[tracks%len(targets)],
+		TargetTrack:  index,
+		Junction:     true,
+		Label:        "to " + s.nameProvider(),
 	})
 	return tiles
 }
@@ -78,28 +77,36 @@ func (s *straightBuilder) buildDirectJunction(index int, direction int, tiles []
 	if direction == 1 {
 		multiplier = 3
 	}
-	connectors := &tiles[tileIndex].Tracks.Alpha
+	tile := &tiles[tileIndex]
 	aTrack := index + (multiplier * direction)
-	connectors[index] = append(connectors[index], &Connector{
-		Target: Omega,
-		Track:  aTrack,
-	})
 	bTrack := index + direction + (multiplier * direction)
-	connectors[index+direction] = append(connectors[index+direction], &Connector{
-		Target: Omega,
-		Track:  bTrack,
+	tile.Tracks = append(tile.Tracks, Connector{
+		SourceTrack:  index,
+		SourceColumn: Alpha,
+		TargetColumn: Omega,
+		TargetTrack:  aTrack,
 	})
-	connectors = &tiles[tileIndex+1].Tracks.Alpha
-	connectors[aTrack] = append(connectors[aTrack], &Connector{
-		Target:   Beta,
-		Track:    aTrack,
-		Junction: true,
+	tile.Tracks = append(tile.Tracks, Connector{
+		SourceTrack:  index + direction,
+		SourceColumn: Alpha,
+		TargetTrack:  bTrack,
+		TargetColumn: Omega,
 	})
-	connectors[bTrack] = append(connectors[bTrack], &Connector{
-		Target:   Beta,
-		Track:    bTrack,
-		Junction: true,
-		Label:    "to " + s.nameProvider(),
+	tile = &tiles[tileIndex+1]
+	tile.Tracks = append(tile.Tracks, Connector{
+		SourceTrack:  aTrack,
+		SourceColumn: Alpha,
+		TargetColumn: Beta,
+		TargetTrack:  aTrack,
+		Junction:     true,
+	})
+	tile.Tracks = append(tile.Tracks, Connector{
+		SourceTrack:  bTrack,
+		SourceColumn: Alpha,
+		TargetColumn: Beta,
+		TargetTrack:  bTrack,
+		Junction:     true,
+		Label:        "to " + s.nameProvider(),
 	})
 	return tiles
 }
