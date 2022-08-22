@@ -42,17 +42,18 @@ func (s *straightBuilder) buildJunction(random *rand.Rand, tracks int, tiles []T
 	verticalDirection := random.Intn(2)
 	tileIndex := len(tiles) / 2
 	index := 0
-	if verticalDirection == 0 {
-		index = 15
-		verticalDirection = -1
-	}
 	minAlpha := 15
 	for _, connector := range tiles[tileIndex].Tracks {
 		if connector.SourceColumn == Alpha && connector.SourceTrack < minAlpha {
 			minAlpha = connector.SourceTrack
 		}
 	}
-	index = index + minAlpha*verticalDirection
+	if verticalDirection == 0 {
+		index = minAlpha + tracks - 1
+		verticalDirection = -1
+	} else {
+		index = minAlpha
+	}
 	if tracks == 2 {
 		return s.buildDirectJunction(index, verticalDirection, tiles)
 	}
@@ -60,6 +61,9 @@ func (s *straightBuilder) buildJunction(random *rand.Rand, tracks int, tiles []T
 	sources := [3]Column{Alpha, Beta, Gamma}
 	targets := [3]Column{Beta, Gamma, Omega}
 	for track := 0; track < tracks; track++ {
+		if track == tracks-1 {
+			verticalDirection = 2 * verticalDirection
+		}
 		tile.Tracks = append(tile.Tracks, Connector{
 			SourceColumn: sources[track%len(sources)],
 			SourceTrack:  index,
@@ -70,9 +74,6 @@ func (s *straightBuilder) buildJunction(random *rand.Rand, tracks int, tiles []T
 			tile = &tiles[tileIndex+1]
 		}
 		index = index + verticalDirection
-		if track == tracks-2 {
-			verticalDirection = 2 * verticalDirection
-		}
 	}
 	tile.Tracks = append(tile.Tracks, Connector{
 		SourceTrack:  index,

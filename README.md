@@ -41,8 +41,8 @@ You can either download the binaries from the Release tab (currently Linux only)
 
 ### Requirements
 
-* Go 1.16 or higher
-* npm 6.14.13 (only needed if you want to build the minimalistic frontend)
+* Go 1.18 or higher
+* npm 16.15.1 (only needed if you want to build the minimalistic frontend)
 
 ### Only Go Application
 
