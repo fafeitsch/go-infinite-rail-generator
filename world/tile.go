@@ -46,22 +46,14 @@ func NewTile(seed string, tracks int) Tile {
 }
 
 func (t *Tile) Mirror() {
-	// alpha := [16]Connectors{}
-	// for track := 0; track < 16; track++ {
-	// 	for _, connector := range t.Tracks.Gamma[track] {
-	// 		if connector.TargetColumn != Omega {
-	// 			continue
-	// 		}
-	// 		if alpha[connector.TargetTrack] == nil {
-	// 			alpha[connector.TargetTrack] = make([]*Connector, 0, 0)
-	// 		}
-	// 		alpha[connector.TargetTrack] = append(alpha[connector.TargetTrack], &Connector{
-	// 			TargetColumn: Beta,
-	// 			TargetTrack:  track,
-	// 		})
-	// 	}
-	// }
-	// t.Tracks.Alpha = alpha
+	for index := range t.Tracks {
+		connector := &t.Tracks[index]
+		connector.SourceTrack, connector.TargetTrack = connector.TargetTrack, connector.SourceTrack
+		connector.SourceColumn, connector.TargetColumn = connector.TargetColumn.Mirror(), connector.SourceColumn.Mirror()
+	}
+	for index := range t.Platforms {
+		t.Platforms[index].Column = t.Platforms[index].Column.Mirror()
+	}
 }
 
 type Tracks []Connector
@@ -93,18 +85,21 @@ type Connector struct {
 	Label        string
 }
 
-// FindConnector returns the connector that connects to the specified target and slot.
-// Returns nil if no such connector exists.
-func (t *Tile) FindConnector(target Column, slot int) *Connector {
-	for index, element := range t.Tracks {
-		if element.TargetColumn == target && element.TargetTrack == slot {
-			return &t.Tracks[index]
-		}
-	}
-	return nil
-}
-
 type Column int
+
+func (c Column) Mirror() Column {
+	switch c {
+	case Alpha:
+		return Omega
+	case Beta:
+		return Gamma
+	case Gamma:
+		return Beta
+	case Omega:
+		return Alpha
+	}
+	panic(fmt.Sprintf("unknown column %d", c))
+}
 
 const (
 	Alpha Column = iota

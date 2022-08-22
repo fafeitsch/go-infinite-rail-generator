@@ -26,7 +26,7 @@ to the generation algorithm.
 * variable amount of tracks
 * areas with many tracks (e.g stations) and over-land tracks with only one or two tracks.
 * switches when tracks merge or diverge
-* siding tracks
+* junctions
 * station platforms with station names
 
 **Architecture**

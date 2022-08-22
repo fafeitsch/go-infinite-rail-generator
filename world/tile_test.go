@@ -15,163 +15,55 @@ func TestNewTile(t *testing.T) {
 	t.Run("create new tile", func(t *testing.T) {
 		tile := NewTile("test-seed", 5)
 		assert.Equal(t, "test-seed", tile.Seed)
-		assert.Equal(t, [16]Connectors{
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			{
-				{
-					TargetColumn: Beta,
-					TargetTrack:  6,
-				},
-			},
-			{
-				{
-					TargetColumn: Beta,
-					TargetTrack:  7,
-				},
-			},
-			{
-				{
-					TargetColumn: Beta,
-					TargetTrack:  8,
-				},
-			},
-			{
-				{
-					TargetColumn: Beta,
-					TargetTrack:  9,
-				},
-			},
-			{
-				{
-					TargetColumn: Beta,
-					TargetTrack:  10,
-				},
-			},
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-		}, tile.Tracks.Alpha)
-		assert.Equal(t, [16]Connectors{
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			{
-				{
-					TargetColumn: Gamma,
-					TargetTrack:  6,
-				},
-			},
-			{
-				{
-					TargetColumn: Gamma,
-					TargetTrack:  7,
-				},
-			},
-			{
-				{
-					TargetColumn: Gamma,
-					TargetTrack:  8,
-				},
-			},
-			{
-				{
-					TargetColumn: Gamma,
-					TargetTrack:  9,
-				},
-			},
-			{
-				{
-					TargetColumn: Gamma,
-					TargetTrack:  10,
-				},
-			},
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-		}, tile.Tracks.Beta)
-		assert.Equal(t, [16]Connectors{
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			{
-				{
-					TargetColumn: Omega,
-					TargetTrack:  6,
-				},
-			},
-			{
-				{
-					TargetColumn: Omega,
-					TargetTrack:  7,
-				},
-			},
-			{
-				{
-					TargetColumn: Omega,
-					TargetTrack:  8,
-				},
-			},
-			{
-				{
-					TargetColumn: Omega,
-					TargetTrack:  9,
-				},
-			},
-			{
-				{
-					TargetColumn: Omega,
-					TargetTrack:  10,
-				},
-			},
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-		}, tile.Tracks.Gamma)
+		assert.Equal(t, 15, len(tile.Tracks))
+		assert.Equal(t, Connector{
+			SourceTrack:  6,
+			TargetTrack:  6,
+			SourceColumn: Alpha,
+			TargetColumn: Beta,
+		}, tile.Tracks[0])
+		assert.Equal(t, Connector{
+			SourceTrack:  6,
+			TargetTrack:  6,
+			SourceColumn: Beta,
+			TargetColumn: Gamma,
+		}, tile.Tracks[1])
+		assert.Equal(t, Connector{
+			SourceTrack:  6,
+			TargetTrack:  6,
+			SourceColumn: Gamma,
+			TargetColumn: Omega,
+		}, tile.Tracks[2])
 	})
 }
 
 func TestTile_Mirror(t *testing.T) {
 	tile := NewTile("", 2)
-	tile.Tracks.Beta[8] = append(tile.Tracks.Beta[8], &Connector{
+	tile.Platforms = append(tile.Platforms, Platform{Track: 4, Column: Gamma})
+	tile.Tracks = append(tile.Tracks, Connector{
 		TargetColumn: Omega,
 		TargetTrack:  9,
+		SourceTrack:  8,
+		SourceColumn: Beta,
 	})
-	tile.Tracks.Gamma[7] = append(tile.Tracks.Gamma[7], &Connector{
+	tile.Tracks = append(tile.Tracks, Connector{
 		TargetColumn: Omega,
 		TargetTrack:  8,
+		SourceTrack:  7,
+		SourceColumn: Gamma,
 	})
 	tile.Mirror()
-	assert.Equal(t, Connectors{
-		{
-			TargetTrack:  7,
-			TargetColumn: Beta,
-		},
-	}, tile.Tracks.Alpha[7])
-	assert.Equal(t, Connectors{
-		{TargetTrack: 7, TargetColumn: Beta},
-		{TargetTrack: 8, TargetColumn: Beta},
-	}, tile.Tracks.Alpha[8])
-	// assert.Equal(t, []*Connector{
-	// 	{
-	// 		TargetTrack:  8,
-	// 		TargetColumn: Gamma,
-	// 	},
-	// }, tile.Tracks.Alpha[9])
+	assert.Equal(t, Connector{
+		SourceTrack:  9,
+		TargetTrack:  8,
+		TargetColumn: Gamma,
+		SourceColumn: Alpha,
+	}, tile.Tracks[6])
+	assert.Equal(t, Connector{
+		SourceTrack:  8,
+		TargetTrack:  7,
+		TargetColumn: Beta,
+		SourceColumn: Alpha,
+	}, tile.Tracks[7])
+	assert.Equal(t, []Platform{{Track: 4, Column: Beta}}, tile.Platforms)
 }

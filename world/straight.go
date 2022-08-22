@@ -1,6 +1,9 @@
 package world
 
-import "math/rand"
+import (
+	"github.com/fafeitsch/go-infinite-rail-generator/util"
+	"math/rand"
+)
 
 type straightBuilder struct {
 	nameProvider nameProvider
@@ -24,6 +27,13 @@ func (s *straightBuilder) build(start int, values []float64) []Tile {
 	die = random.Float64()
 	if die < 0.5 && len(result) > 2 {
 		result = s.buildJunction(random, tracks, result)
+		die = random.Float64()
+		if die < 0.5 {
+			util.Reverse(result)
+			for index := range result {
+				result[index].Mirror()
+			}
+		}
 	}
 	return result
 }
@@ -31,14 +41,18 @@ func (s *straightBuilder) build(start int, values []float64) []Tile {
 func (s *straightBuilder) buildJunction(random *rand.Rand, tracks int, tiles []Tile) []Tile {
 	verticalDirection := random.Intn(2)
 	tileIndex := len(tiles) / 2
-	alphaTracks := tiles[tileIndex].Tracks.AlphaTracks()
 	index := 0
 	if verticalDirection == 0 {
-		index = len(alphaTracks) - 1
+		index = 15
 		verticalDirection = -1
 	}
-	for ; !alphaTracks[index]; index = index + verticalDirection {
+	minAlpha := 15
+	for _, connector := range tiles[tileIndex].Tracks {
+		if connector.SourceColumn == Alpha && connector.SourceTrack < minAlpha {
+			minAlpha = connector.SourceTrack
+		}
 	}
+	index = index + minAlpha*verticalDirection
 	if tracks == 2 {
 		return s.buildDirectJunction(index, verticalDirection, tiles)
 	}
